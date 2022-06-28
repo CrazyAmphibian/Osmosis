@@ -1,0 +1,313 @@
+local imageobjects={}
+local imagezoom=1
+local tempstring=""
+local editstring=nil
+local allowsubmit=false
+local hscroll,vscoll=0,0
+--editstring ="\raddtag" 
+
+local function transfer(to,nosave)
+	programdata.tagscroll=0
+if nosave then goto force end
+	if editstring then
+		if editstring==to then return end
+
+		if editstring=="\raddtag" then
+			if tempstring ~="" and allowsubmit then  
+				table.insert(tags[programdata.selectedimage], tempstring)
+				writetag(programdata.selectedimage , tags[programdata.selectedimage])
+				print("added tag "..tempstring.." to image "..programdata.selectedimage)
+			end
+			tempstring=""
+		else
+			
+		end
+	end
+
+	::force::
+	editstring=to
+end
+
+
+
+
+
+
+
+function init(self)
+	msg.post(".", "acquire_input_focus")
+end
+
+function update(self, dt)
+
+
+
+
+	
+	if programdata.sidebar then
+		for i in pairs(imageobjects) do
+			if i:sub(1,2)=="t\r"  then gui.set_alpha(imageobjects[i], 0) end
+		end
+		goto skip
+	end
+
+	for i in pairs(imageobjects) do
+		if i:sub(1,2)=="t\r" then gui.set_alpha(imageobjects[i], 1) end
+	end
+	
+	local pos=vmath.vector3(0,0,0)
+	local text=""
+	
+	for i in pairs(imageobjects) do
+		gui.delete_node(imageobjects[i])
+		imageobjects[i]=nil
+	end
+
+	if mimg then gui.delete_texture("mimg") mimg=false end
+
+
+	if  programdata.screen ~="image" then programdata.fullimagemode=false programdata.imgys=0 programdata.imgxs=0 programdata.imgz=1 goto skip end
+	if not programdata.selectedimage then goto skip end
+	local imgscale = math.min( (programdata.width-config.guiscale*150-config.galleryimagepadding*programdata.width*2)/images[programdata.selectedimage].width ,
+			(programdata.height-config.galleryimagepadding*programdata.height*2-config.guiscale*10)/images[programdata.selectedimage].height  )	
+	--imageobjects["image"] = gui.new_box_node(vmath.vector3(config.guiscale*150+config.galleryimagepadding*programdata.width ,programdata.height-config.galleryimagepadding*programdata.height,0), vmath.vector3(programdata.width-config.guiscale*150-config.galleryimagepadding*programdata.width*2, 
+	--images[programdata.selectedimage].height*(programdata.width-config.guiscale*150-config.galleryimagepadding*programdata.height*2 )/images[programdata.selectedimage].width ,0 ) )
+	imageobjects["image"] = gui.new_box_node(vmath.vector3(config.guiscale*150+config.galleryimagepadding*programdata.width ,programdata.height-config.galleryimagepadding*programdata.height-config.guiscale*10,0), vmath.vector3(images[programdata.selectedimage].width*imgscale,images[programdata.selectedimage].height*imgscale,0) )
+
+	
+	imageobjects["ttext"] = gui.new_text_node(pos, text)
+	imageobjects["atext"] = gui.new_text_node(pos, text)
+	gui.set_pivot(imageobjects["image"], 8)
+	gui.set_pivot(imageobjects["ttext"], 8)
+	gui.set_pivot(imageobjects["atext"], 8)
+	local yoffset=0 - config.guiscale*100
+	local minval = yoffset
+	local tabletoparse={}
+	local mode=0
+	if editstring =="\raddtag" then
+		mode=1
+		tabletoparse=programdata.tagcount
+	elseif not programdata.fullimagemode then
+		tabletoparse=tags[programdata.selectedimage]
+	end
+
+	
+	for i,v in pairs(tabletoparse or {}) do
+		if mode==1 and not i:find(tempstring) then goto next end
+		if mode==1 then 
+			local f
+			for _,t in pairs(tags[programdata.selectedimage]) do
+				if i==t then goto next end --prevent existing tags from showing up
+			end
+		end
+		if yoffset<=0-programdata.height-programdata.tagscroll then goto next end --using break doesn't pair well with this sometimes for whatever reason.
+		local i2=i
+		if mode==1 then i,v = v,i end
+		
+		imageobjects["b\r"..i2]=gui.new_box_node(vmath.vector3(0,programdata.height+yoffset+programdata.tagscroll,0), vmath.vector3(1,1,0) )
+		gui.set_pivot(imageobjects["b\r"..i2], 8)
+		if mode ==1 then a= i.." " else a="" end
+		imageobjects["t\r"..i2]=gui.new_text_node(vmath.vector3(0,programdata.height+yoffset+programdata.tagscroll,0),  a ..v)
+		gui.set_pivot(imageobjects["t\r"..i2], 8)
+		gui.set_size(imageobjects["t\r"..i2], vmath.vector3( config.guiscale*150/config.guiscale ,0,0 ) )
+		gui.set_line_break(imageobjects["t\r"..i2], true)
+		gui.set_font(imageobjects["t\r"..i2], "system_font")
+
+		local tc=gettagcolor(v)
+		--if mode ==1 then tc=gettagcolor(v:sub(3)) end
+		gui.set_color(imageobjects["t\r"..i2], vmath.vector3(tc.t[1],tc.t[2],tc.t[3] ) )
+		gui.set_scale(imageobjects["t\r"..i2], vmath.vector3(config.guiscale,config.guiscale,0))
+		gui.set_color(imageobjects["b\r"..i2], vmath.vector3(tc.b[1],tc.b[2],tc.b[3]) )
+		
+		local dy = gui.get_text_metrics_from_node(imageobjects["t\r"..i2]).height*config.guiscale
+		gui.set_size(imageobjects["b\r"..i2],  vmath.vector3(config.guiscale*150 , dy , 0) )
+		yoffset=yoffset-dy-config.guiscale*5
+
+		if yoffset + programdata.tagscroll +dy > minval then --this is very lazy but works
+			gui.delete_node(imageobjects["b\r"..i2])
+			imageobjects["b\r"..i2]=nil
+			gui.delete_node(imageobjects["t\r"..i2])
+			imageobjects["t\r"..i2]=nil
+			
+		end
+		::next::
+	end
+
+	if not programdata.fullimagemode then
+		imageobjects["t\rimagefilenametxt"]=gui.new_text_node(vmath.vector3(config.guiscale*150+config.galleryimagepadding*programdata.width ,programdata.height-config.guiscale*5,0), programdata.selectedimage)
+		gui.set_pivot(imageobjects["t\rimagefilenametxt"], 8)
+		gui.set_scale(imageobjects["t\rimagefilenametxt"], vmath.vector3(config.guiscale,config.guiscale,0))
+		
+	imageobjects["entryboxstatic"] = gui.new_box_node(vmath.vector3(0,programdata.height,0), vmath.vector3( config.guiscale*150 ,config.guiscale*20,0))
+	gui.set_pivot(imageobjects["entryboxstatic"], 8)
+	gui.set_color(imageobjects["entryboxstatic"], vmath.vector3(.2,.2,.2))
+
+	imageobjects["t\rentrystatic"] = gui.new_text_node(vmath.vector3( 75*config.guiscale,programdata.height,0), "add:")
+
+	if editstring =="\raddtag" then
+		local match
+		for _,v in pairs(tags[programdata.selectedimage] or {}) do if tempstring==v then match=true break end end
+		if match then
+			gui.set_color(imageobjects["t\rentrystatic"], vmath.vector3(1,0,0))
+			allowsubmit=false
+		else
+			gui.set_color(imageobjects["t\rentrystatic"], vmath.vector3(0,1,0))
+			allowsubmit=true
+		end
+	end
+	
+	gui.set_scale(imageobjects["t\rentrystatic"], vmath.vector3(config.guiscale,config.guiscale,0))
+	gui.set_pivot(imageobjects["t\rentrystatic"] , 1)
+
+	local tc=gettagcolor(tempstring)
+	imageobjects["entrybox"] = gui.new_box_node(vmath.vector3(0,programdata.height-config.guiscale*20,0), vmath.vector3( config.guiscale*150 ,config.guiscale*75,0))
+	
+	gui.set_pivot(imageobjects["entrybox"], 8)
+	gui.set_color(imageobjects["entrybox"], vmath.vector3(tc.b[1] , tc.b[2] , tc.b[3] ))
+
+	if editstring=="\raddtag"  then
+	imageobjects["t\rentry"]=gui.new_text_node( vmath.vector3(0,programdata.height-config.guiscale*20,0), tempstring)
+	gui.set_pivot(imageobjects["t\rentry"], 8)
+	gui.set_line_break(imageobjects["t\rentry"], true)
+	gui.set_size(imageobjects["t\rentry"], vmath.vector3(   150  , config.guiscale*75,0))
+	gui.set_color(imageobjects["t\rentry"], vmath.vector3(tc.t[1] , tc.t[2] , tc.t[3] ))
+	gui.move_above(imageobjects["t\rentry"], nil)--imageobjects["entrybox"])
+	end
+
+	end
+	
+
+	::imageonly::
+
+
+	local tex =image.load(images[programdata.selectedimage].data  )
+	gui.new_texture("mimg", tex.width, tex.height, tex.type, tex.buffer)
+	mimg=true
+	gui.set_texture(imageobjects["image"], "mimg" )
+
+	if programdata.fullimagemode then
+		--imageobjects["image"]
+		gui.set_size(imageobjects["image"], vmath.vector3( images[programdata.selectedimage].width*programdata.imgz , images[programdata.selectedimage].height*programdata.imgz , 0  ))
+		gui.set_position(imageobjects["image"], vmath.vector3(programdata.imgxs ,programdata.height-programdata.imgys,0) )
+		
+	end
+
+	
+	programdata.debounce=true
+	::skip::
+
+
+	
+end
+
+function on_message(self, message_id, message, sender)
+	-- Add message-handling code here
+	-- Learn more: https://defold.com/manuals/message-passing/
+	-- Remove this function if not needed
+end
+
+function on_input(self, action_id, action)
+	if programdata.screen~="image" or (not programdata.debounce) then return end
+	
+	
+	if action_id==hash"esc" and action.pressed then transfer(nil, true) programdata.screen="gallery" programdata.tagscroll=0 end
+
+	
+	if not programdata.sidebar and action.pressed then
+		if action_id == hash"mwu" then
+			if action.screen_x <= config.guiscale*150 and programdata.tagscroll >0 and not programdata.fullimagemode then
+				programdata.tagscroll=programdata.tagscroll-delta*config.scrollsen*2*config.guiscale*programdata.height
+				--print(delta)
+			elseif programdata.fullimagemode then
+				if programdata.shift then
+					programdata.imgxs=programdata.imgxs-1*config.scrollsen*images[programdata.selectedimage].width*delta
+				elseif programdata.control then
+					programdata.imgz=programdata.imgz*(1.05) --don't even try to add sensitivity changes. it's just a mess.
+					programdata.imgxs=programdata.imgxs - images[programdata.selectedimage].width*.025*programdata.imgz --keep the same position
+					programdata.imgys=programdata.imgys - images[programdata.selectedimage].height*.025*programdata.imgz --this funky equation took a bit to figure out...
+					
+				else
+					programdata.imgys=programdata.imgys+1*config.scrollsen*images[programdata.selectedimage].height*delta
+				end
+			end
+			
+		elseif action_id==hash"mwd" then
+			if action.screen_x <= config.guiscale*150 and not programdata.fullimagemode then
+				programdata.tagscroll=programdata.tagscroll+delta*2*config.scrollsen*config.guiscale*programdata.height
+			elseif programdata.fullimagemode then
+				if programdata.shift then
+					programdata.imgxs=programdata.imgxs+1*config.scrollsen*images[programdata.selectedimage].width*delta
+				elseif programdata.control then
+					programdata.imgz=programdata.imgz/(1.05)
+					programdata.imgxs=programdata.imgxs + images[programdata.selectedimage].width*.025*programdata.imgz
+					programdata.imgys=programdata.imgys + images[programdata.selectedimage].height*.025*programdata.imgz
+				else
+					programdata.imgys=programdata.imgys-1*config.scrollsen*images[programdata.selectedimage].height*delta
+				end
+			end
+
+		elseif action_id==hash"m1" then
+			
+			if action.screen_x <= config.guiscale*150 and action.screen_y >= programdata.height-config.guiscale*80 then
+				transfer("\raddtag")
+			elseif  editstring=="\raddtag"  then
+				local match
+				for i in pairs(imageobjects) do
+					if i:sub(1,2)~="b\r" then goto next end
+					local pos , siz = gui.get_position(imageobjects[i]) , gui.get_size(imageobjects[i])
+					if  action.screen_x >= pos.x and action.screen_x<= pos.x+siz.x and action.screen_y<=pos.y and action.screen_y>=pos.y-siz.y then
+						match=i   break end
+					::next::
+				end
+
+				if match then
+					--print(match)
+					tempstring=match:sub(3)
+					transfer(nil)
+					transfer("\raddtag")
+				else
+					tempstring=""
+					transfer(nil)
+				end
+			elseif action.screen_x >= config.guiscale*150 and not programdata.fullimagemode then
+				transfer(nil)
+				programdata.fullimagemode=true
+			elseif programdata.fullimagemode then programdata.fullimagemode=false 
+			else
+				transfer(nil)
+			end
+			
+		elseif action_id==hash"m2" then
+			local match
+			for i in pairs(imageobjects) do
+				if editstring~=nil then break end
+				if i:sub(1,2)~="b\r" then goto next end
+
+				local pos , siz = gui.get_position(imageobjects[i]) , gui.get_size(imageobjects[i])
+				if  action.screen_x >= pos.x and action.screen_x<= pos.x+siz.x and action.screen_y<=pos.y and action.screen_y>=pos.y-siz.y then
+					match=i   break end
+					::next::
+				end
+
+				if match then
+					print("deleted tag "..tags[programdata.selectedimage][tonumber(match:sub(3))] .." from image ".. programdata.selectedimage  )
+					table.remove( tags[programdata.selectedimage] , tonumber(match:sub(3)) )
+					writetag(programdata.selectedimage , tags[programdata.selectedimage])
+					
+				end
+
+			
+		elseif action_id==hash"enter" then 
+			transfer(nil)
+			
+		end
+	end
+
+	if programdata.screen=="image" and not programdata.sidebar then
+		if action_id==hash"text" and editstring then tempstring=tempstring..action.text:lower() end
+		if action_id==hash"delete" and editstring and (action.pressed or action.repeated) then tempstring=tempstring:sub(1,#tempstring-1) end
+	end
+
+
+	
+end

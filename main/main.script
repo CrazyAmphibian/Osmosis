@@ -1,0 +1,377 @@
+	config={}
+	images={}
+	programdata={}
+	showing={}
+	tags={}
+	filters={}
+
+
+	
+programdata.width , programdata.height = window.get_size()
+
+delta=1
+deltatable={} --used to smooth out stuff
+if not loadstring then loadstring=load end --future-proofing because loadstring gets replaced by load in higher Lua versions, i believe.
+
+OS = sys.get_sys_info().system_name
+--pprint( sys.get_engine_info() )
+print(OS)
+
+
+getfiles = function(dir) --returns table of all files in directory
+	local str
+	local out={}
+	
+	if OS =="Linux" then
+		str= io.popen("ls \""..dir.."\" -w 1")
+	elseif OS=="Windows" then
+		str = io.popen("dir /b \""..dir.."\"")
+	end
+	
+	for i in str:lines() do
+		table.insert(out, i)
+	end
+	
+return out
+end
+
+
+
+function makedir(dir) --duh. diffrent dpending on os, i think? doesn't hurt to try.
+if OS=="Windows" or OS=="Linux" then
+	os.execute("mkdir \""..dir.."\"")
+end
+end
+
+
+
+table.tostring = function(tab,keepkeys, humanreadable , rlevel) --converts a table to a string. keepkeys will keep numeric type keys. it will always keep string keys
+	if type(tab)~="table" then return tab end --only execute if its a table
+	local textout=""
+	local n=0
+	rlevel=rlevel or 0 --recursion level.
+
+	if humanreadable then
+		for t=1,rlevel do textout=textout.."\t" end --tab for each level in.
+	end
+
+	--textout="{"..textout
+	textout=textout.."{"
+
+	for i,v in pairs(tab) do
+		n=n+1
+
+		if humanreadable and n~=1  then
+			for t=1,rlevel do textout=textout.."\t" end --tab for each level in.
+		end
+
+		--first, key writting
+		if type(i)=="number" and keepkeys then
+			textout=textout.."["..i.."]="
+		elseif type(i)=="number" then		
+		elseif type(i)=="string" then
+			textout=textout.."[\"".. i :gsub("\\","\\\\"):gsub("\"","\\\""):gsub("\n","\\n"):gsub("\r","\\r") .."\"]="
+		else
+			textout=textout.."["..tostring(i).."]"
+		end
+
+		--now the values
+		if type(v)=="table" then
+			textout=textout..table.tostring(v,keepkeys,humanreadable,rlevel+1)
+			if humanreadable then textout=textout.."\n" end
+		elseif type(v)=="number" then
+			textout=textout..v
+		elseif type(v)=="string" then
+			textout=textout.."\"".. v :gsub("\\","\\\\"):gsub("\"","\\\""):gsub("\n","\\n"):gsub("\r","\\r") .."\""
+			if textout:find("\v") then print(v) end
+		else
+			textout=textout.."\""..tostring(v).."\""
+			print("aa")
+		end	
+
+		if n~=#tab then textout=textout.."," end
+		if humanreadable and n<#tab then textout=textout.."\n" end
+	end
+	textout=textout.."}"
+
+	return textout
+end
+
+
+string.words = function(s,seperator,keepsep) --extract words into a table. can set a custom separator default " "
+if type(s) ~= "string" then return {} end
+if not seperator then seperator={" "} end
+if type(seperator) ~= "table" then seperator={seperator} end
+local out={}
+local buf=""
+for i=1,#s do
+	local issep	
+	for _,sep in pairs(seperator) do
+		if sep==s:sub(i,i) then issep = true end
+	end
+
+	if issep then
+		if buf~="" then table.insert(out,buf) end
+		if keepsep then
+			table.insert(out,s:sub(i,i))
+		end	
+		buf=""
+	else
+		buf=buf..s:sub(i,i)
+	end	
+end
+if buf~="" then table.insert(out,buf) end
+
+return out	
+end
+
+
+function writeconfigfile() --does what you think.
+	local cftext = "config="..table.tostring(config , true,true)
+	local f=io.open("config","w")
+	f:write(cftext)
+	f:flush()
+	f:close()	
+end
+
+makedir("images") --make required folders.
+makedir("tags") 
+
+
+
+function writetag(filename , data)
+	local f=io.open("tags/"..filename , "w+")
+	f:write( "return ".. table.tostring(data,true) )
+	f:close()
+
+	programdata.tagcount={}
+	for _,v in pairs(tags) do
+		for _ , tag in pairs(v) do
+			programdata.tagcount[tag] = programdata.tagcount[tag] or 0
+			programdata.tagcount[tag] = programdata.tagcount[tag] +1
+		end
+	end
+end
+
+
+function reload() --refreshes all images, tags, ect
+	config={}
+	images={}
+	programdata={}
+	showing={}
+	tags={}
+	filters={}
+	
+	local _,e = pcall(function() dofile("config") end)
+	if e then config={} print("ERROR WHEN IMPORTING CONFIG FILE!!:\t"..e) end --again, idiot-proof the code if someone messes with it, or my code sucks.
+
+	config.tagindexchar=config.tagindexchar or ":" --tag seperators ie    year:2022
+	config.imagesperrow=	config.imagesperrow or 4 --images per row in the gallery view
+	config.galleryimagepadding=config.galleryimagepadding or .04 --buffer between images in the gallery as a proportion of screen space
+	config.guiscale = config.guiscale or 1 --scale of some GUI elements eg tags and settings
+	config.scrollsen=config.scrollsen or 1
+	config.tagcolors=config.tagcolors or {}
+	config.defaulttagcolors=config.defaulttagcolors or {t={1,1,1} , b={.1,.1,.1} }
+	config.loadnum=config.loadnum or 10
+	local imagestor= getfiles("images")
+	for _,v in pairs(imagestor) do
+		if not ( v:sub(#v-3 ,#v  ):lower()==".png" or v:sub(#v-3 ,#v  ):lower()==".jpg" or v:sub(#v-4 ,#v  ):lower()==".jpeg"  ) then goto next end
+		images[v]={} 
+		if false then --extreme slowness to start up.
+			local f=io.open("images/"..v ,"rb") --open in read binary mode, because windows sucks. 
+			local td = f:read("*a")
+			local i =  image.load( td)  
+			images[v] = {  width=i.width , height=i.height , data=td } --only keeping part of this in memory, preserve RAM, unlike last time, dipshit. the size is needed for spacing.
+			f:close()
+		end
+		tags[v]={}
+		showing[v]=true
+		
+		::next::
+	end
+
+	local tagstor=getfiles("tags")
+	for _,v in pairs(tagstor) do
+		tags[v] = dofile("tags/"..v)
+	end
+
+	programdata.tagcount={}
+	for _,v in pairs(tags) do
+		for _ , tag in pairs(v) do
+			programdata.tagcount[tag] = programdata.tagcount[tag] or 0
+			programdata.tagcount[tag] = programdata.tagcount[tag] +1
+		end
+	end
+	--table.sort(programdata.tagcount , function(a,b) return tostring(a)<tostring(b) end  )
+	
+	programdata.width , programdata.height = window.get_size()
+	programdata.galleryscroll=0
+	programdata.maxgalscroll=1 --it's 1 so no division by 0
+	programdata.tagscroll=0
+	programdata.filterscroll=0
+	programdata.screen="gallery"
+	programdata.screenorder={  "gallery" , "image" , "settings" , "tags"  }
+	programdata.debounce=true
+	programdata.fullimagemode=false
+	programdata.imgxs=0 -- scrolling for the full image view
+	programdata.imgys=0 -- ^
+	programdata.imgz=1
+	programdata.shift=false
+	programdata.control=false
+	programdata.settingscroll=0
+	writeconfigfile()
+	filters={type="and",tags={}}
+	
+end
+
+
+
+function filterimages()
+
+	for i,v in pairs(images) do
+		--showing[i]=true --images assumed to be showing unless otherwise stated
+		--print(booleancomparison(filters,tags[i]) )
+		if  booleancomparison(filters,tags[i]) ==1 then
+			showing[i]=true
+		else
+			showing[i]=false
+		end
+		
+	end
+
+end
+
+function booleancomparison(filts,tgs) --this is its own funcation that returns the number of matching tags withing a filter table. accounts logic. probably.
+	--first go though the table of shit, then match that against each image.
+	--[[struct:
+	{type="and",tags={ "a" , "b" , {type="or", tags={"c","d"}}    }}
+	
+	]]
+	local mx = 0
+	local nmatch=0	
+	for _,filtertag in pairs(filts.tags or {}) do
+		mx=mx+1
+		if type(filtertag)=="table" then
+			nmatch=nmatch+booleancomparison(filtertag,tgs)
+		else
+			for _,tag in pairs(tgs) do
+				if filtertag==tag then
+					nmatch=nmatch+1
+				end
+			end
+		end
+	end
+
+	if filts.type =="and" then --all true
+		if nmatch==mx then return 1 end
+	elseif filts.type=="or" then --any true
+		if nmatch>0 then return 1 end
+	elseif filts.type=="xor" then --more than one but not all true
+		if nmatch > 0 and nmatch < mx then return 1 end
+	elseif filts.type=="nand" then --not all true
+		if nmatch < mx then return 1 end
+	elseif filts.type=="nor" then -- none are true
+		if nmatch==0 then return 1 end
+	elseif filts.type=="nxor" then --all or nothing
+		if nmatch==mx or nmatch ==0 then return 1 end
+	end
+	
+return 0
+end
+
+
+function gettagcolor(tag)
+tag=tag or ""
+	for _,v in pairs(config.tagcolors) do
+	--	if i==tag then return v end
+	--	if i==tag:sub(1,#i) then return v end
+	if not v.string then break end
+	if tag:sub(1,#v.string) == v.string and #v.string>=1 then return v end
+	
+	end
+
+	return config.defaulttagcolors or {t={1,1,1} , b={.1,.1,.1} }
+	
+end
+
+
+
+
+
+
+
+
+
+
+
+function init(self)
+	--pprint(getfiles("")  )
+	reload()
+	msg.post(".", "acquire_input_focus")
+end
+
+
+function update(self, dt)
+	--delta=dt
+	filterimages()
+	
+	for i=30,2,-1 do
+		deltatable[i]=deltatable[i-1] --keep a 30 frame buffer to smooth the scrolling with frame drops
+	end
+	deltatable[1]=dt
+	
+	local sum=0
+	for _,v in pairs(deltatable) do
+		sum=sum+v
+	end
+	delta=sum/#deltatable
+	delta=(1/60) --nevermind, frame dependant scrolling is ass. faster is slower. eugh.
+	
+	--print(#deltatable,delta)
+	
+	programdata.width , programdata.height = window.get_size()
+	--pprint(images)
+	--print(programdata.maxgalscroll )
+end
+
+function on_input(self, action_id, action)
+
+
+
+
+	if action_id==hash"shift" then
+		programdata.shift=true
+		if action.released then programdata.shift=false end
+	end
+	if action_id==hash"control" then
+		programdata.control=true
+		if action.released then programdata.control=false end
+	end
+
+	
+	if programdata.galleryscroll < 0 then programdata.galleryscroll =0 end --just in case
+	if programdata.galleryscroll > programdata.maxgalscroll then programdata.galleryscroll = programdata.maxgalscroll end --just in case2
+
+	
+	if  programdata.screen =="gallery" then 
+		if action_id==hash"mwu" then
+			if programdata.galleryscroll >0 then
+				programdata.galleryscroll=programdata.galleryscroll- config.scrollsen*3*(programdata.height*delta)
+			end
+		end
+		if action_id==hash"mwd" then
+			programdata.galleryscroll=programdata.galleryscroll+  config.scrollsen*3*(programdata.height*delta)
+		end
+	end
+
+
+	if action_id==hash"tab" and action.pressed then
+		if not programdata.sidebar then
+			programdata.sidebar=true
+		else
+			programdata.sidebar=false
+		end
+	end
+	
+
+end

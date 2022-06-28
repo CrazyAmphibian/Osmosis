@@ -1,0 +1,312 @@
+local imgobj={} --this time around it'll be harder to do this... let's see if we can't.
+local tempstring=""
+local editstring=nil
+local allowsubmit=false --yeah i stole this from the imagecode....
+
+local function stringvalue(setto)
+	--local aw = editstring:gsub("\r","\\r") print( aw)
+	if not editstring then return nil end
+	local done
+	if not setto then --returns value
+		local t=filters
+		local buf=""
+		for i=1,#editstring do
+			if editstring:sub(i,i) =="\r" then
+				
+				t=t[tonumber(buf) or buf] --hey dickhead, remember that strings aren't numbers.
+				buf=""
+			else
+				buf=buf..editstring:sub(i,i)
+			end
+		end
+		return t
+	else --sets value
+		local a=filters
+		local t=filters
+		local buf=""
+		local out=""
+		for i=1,#editstring do
+			if editstring:sub(i,i) =="\r" then
+				t=t[tonumber(buf) or buf] --hey dickhead, remember that strings aren't numbers.
+				if not tonumber(buf) then
+					out=out.."[\""..buf.."\"]" else
+						out=out.."["..buf.."]" end
+				buf=""
+			else
+				buf=buf..editstring:sub(i,i)
+			end
+		end
+		--t=setto 
+		_G.set=setto --fuck me, this is a worse workaround. bad code, but it works.
+		loadstring("filters"..out.."=set" )() --yes, this is a really bad way to do this. oh well.
+
+		
+
+	end
+end
+
+
+
+
+function init(self)
+	msg.post(".", "acquire_input_focus")
+end
+
+function update(self, dt)
+
+	
+	local function deleteelements(elemt,textonly)
+		for i in pairs(elemt) do
+			if type(elemt[i])=="table" then
+				deleteelements(elemt[i])
+				elemt[i]=nil
+			else
+				if not textonly then 
+					gui.delete_node((elemt[i]))
+					elemt[i]=nil
+				end
+			end
+		end
+	end
+
+
+	
+		if programdata.sidebar then
+
+--		gui.get_text(imgobj.tags[1]) --returns nil if not a text node. good.
+		deleteelements(imgobj, true)
+
+		goto skip end
+
+
+
+	
+	
+	deleteelements(imgobj)
+	if programdata.screen~="tags" then programdata.filterscroll=0 editstring=nil goto skip end
+
+	local xoff= 0+config.guiscale*10
+	local yoff=0 + 10*config.guiscale + programdata.filterscroll
+	local autocomplete={x=nil,y=nil,str=nil,enabled=false}
+	local function makeelementsfromfilts(filtt,elemt,lv,hide,pathing) --filter table, element table, depth.
+		if hide then goto doit end
+		xoff=xoff-20*config.guiscale --indent half - now quarter a step. makes it look better. --now here, we go though bool info
+		elemt["type"]=gui.new_box_node(vmath.vector3(xoff+lv*40*config.guiscale,programdata.height-yoff,0), vmath.vector3(80*config.guiscale,40*config.guiscale,0) )
+		gui.set_pivot(elemt["type"], 8)
+		gui.set_color(elemt["type"], vmath.vector3(.1,.1,.1))
+
+		
+		elemt["\ttype"]=gui.new_text_node(vmath.vector3(xoff+lv*40*config.guiscale,programdata.height-yoff,0), filtt.type or "" )
+		gui.set_pivot(elemt["\ttype"], 8)
+		gui.set_color(elemt["\ttype"], vmath.vector3(1,1,1))
+		gui.set_scale(elemt["\ttype"], vmath.vector3(config.guiscale*2 ,config.guiscale*2 ,0  ))
+		yoff=yoff + 40*config.guiscale+ config.guiscale*10
+		
+		--xoff=xoff-40*config.guiscale
+		--xoff=xoff+ config.guiscale*20
+		xoff=xoff+20*config.guiscale
+		::doit::
+		elemt["tags"]={}
+		for i in pairs(filtt.tags) do --go through tags
+			if type(filtt.tags[i]) ~="table" then
+				local tc = gettagcolor(filtt.tags[i])
+				
+				elemt["tags"][i] = gui.new_box_node(vmath.vector3(xoff+lv*40*config.guiscale,programdata.height-yoff,0)  , vmath.vector3(80*config.guiscale+programdata.width,40*config.guiscale,0))
+				gui.set_pivot(elemt["tags"][i], 8)
+				gui.set_color(elemt["tags"][i], vmath.vector3(tc.b[1],tc.b[2],tc.b[3]))
+
+				elemt["tags"]["\t"..i]=gui.new_text_node(vmath.vector3(xoff+lv*40*config.guiscale,programdata.height-yoff,0), filtt.tags[i] )
+				gui.set_pivot(elemt["tags"]["\t"..i], 8)
+				gui.set_color(elemt["tags"]["\t"..i], vmath.vector3(tc.t[1],tc.t[2],tc.t[3]))
+				gui.set_scale(elemt["tags"]["\t"..i], vmath.vector3(config.guiscale*2 ,config.guiscale*2 ,0  ))
+				--print("##",editstring,"@@",pathing..i.."\r","##")
+				if pathing..i.."\r" == editstring then
+					--now that we have the active editing thingy, let's store the position for later
+					autocomplete.x=xoff+lv*40*config.guiscale
+					autocomplete.y=yoff
+					autocomplete.str=filtt.tags[i]
+					autocomplete.enabled=true		
+					autocomplete.match=filtt.tags[i]
+				end
+				
+				yoff=yoff + 40*config.guiscale+ config.guiscale*10
+			else
+				elemt["tags"][i]={}
+				makeelementsfromfilts(filtt.tags[i] ,elemt["tags"][i] , lv+1,false , pathing..""..i.."\rtags".."\r")
+			end
+		end
+		if not hide then xoff=xoff-00*config.guiscale end
+		--now make the add buttons
+		elemt["add"]=gui.new_box_node(vmath.vector3(xoff+lv*40*config.guiscale,programdata.height-yoff,0), vmath.vector3(40*config.guiscale,40*config.guiscale,0) )
+		gui.set_pivot(elemt["add"], 8)
+		gui.set_color(elemt["add"], vmath.vector3(.1,.1,.1))
+
+		elemt["\radd"]=gui.new_box_node(vmath.vector3(xoff+lv*40*config.guiscale,programdata.height-yoff,0), vmath.vector3(40*config.guiscale,40*config.guiscale,0) )
+		gui.set_pivot(elemt["\radd"], 8)
+		gui.set_texture(elemt["\radd"], "srcimg")
+		gui.play_flipbook(elemt["\radd"], "add")
+
+		elemt["bool"]=gui.new_box_node(vmath.vector3(xoff+lv*40*config.guiscale+40*config.guiscale,programdata.height-yoff,0), vmath.vector3(40*config.guiscale,40*config.guiscale,0) )
+		gui.set_pivot(elemt["bool"], 8)
+		gui.set_color(elemt["bool"], vmath.vector3(.1,.1,.1))
+
+		elemt["\rbool"]=gui.new_box_node(vmath.vector3(xoff+lv*40*config.guiscale+40*config.guiscale,programdata.height-yoff,0), vmath.vector3(40*config.guiscale,40*config.guiscale,0) )
+		gui.set_pivot(elemt["\rbool"], 8)
+		gui.set_texture(elemt["\rbool"], "srcimg")
+		gui.play_flipbook(elemt["\rbool"], "bool")
+		yoff=yoff+50*config.guiscale
+
+	end
+
+	makeelementsfromfilts(filters ,imgobj , 0,true,"tags\r")
+
+	if autocomplete.enabled then
+			
+		imgobj["tc"]={}
+		autocomplete.y=autocomplete.y + config.guiscale*40
+		autocomplete.x=autocomplete.x + config.guiscale*80
+		for i,v in pairs(programdata.tagcount) do
+			if not i:find(autocomplete.match) then goto next end
+		--	print(autocomplete.y)
+			if autocomplete.y > programdata.height then break end
+			imgobj["tc"][i] = gui.new_box_node(vmath.vector3(autocomplete.x,programdata.height-autocomplete.y, 0), vmath.vector3( config.guiscale*300 , config.guiscale*20 ,0    ))
+			imgobj["tc"]["\r"..i] = gui.new_text_node(vmath.vector3(autocomplete.x,programdata.height -autocomplete.y, 0), v.." "..i)
+			gui.set_pivot(imgobj["tc"][i] , 8)
+			gui.set_pivot(imgobj["tc"]["\r"..i] , 8)
+			local tc = gettagcolor(i)
+			gui.set_color(imgobj["tc"][i], vmath.vector3(tc.b[1],tc.b[2],tc.b[3]))
+			gui.set_color(imgobj["tc"]["\r"..i], vmath.vector3(tc.t[1],tc.t[2],tc.t[3]))
+
+			autocomplete.y=autocomplete.y+config.guiscale*30
+			::next::
+		end
+		
+	end
+	
+	::skip::
+end
+
+function on_input(self, action_id, action)
+	--now for the part i dread: making this actually interactable... fuck.
+	--i hope you like recursion and nesting...
+
+	if programdata.screen~="tags" then return end
+	--print(editstring)
+	
+	if (action_id==hash"m1" or action_id==hash"m2") and action.pressed then
+
+
+		--first, let's go for boolean changing.
+		local mx,my = action.screen_x,action.screen_y
+		local validbox
+		function fuckme(tabel,filtacsesspoint,protected,pathstring)
+			for i,v in pairs(tabel) do
+				
+				if type(v)~="table" then
+					
+					local siz,pos = gui.get_size(v) , gui.get_position(v)
+					if mx>=pos.x and mx<=pos.x+siz.x and my<=pos.y and my>=pos.y-siz.y then
+						if type(i)=="number" then--tostring(i):sub(1,1)~="\r" and tostring(i):sub(1,1)~="\t"  then
+							if action_id==hash"m1" then --AAAAAAAAAAAAAAAHHHH. TEXT DETECTION!
+								editstring=pathstring..i.."\r"
+								validbox=true
+							elseif action_id==hash"m2" then
+						
+								if type(i)=="number" then --right clcik to remove a tag
+									table.remove( filtacsesspoint , i )
+								end
+							end
+							break
+						elseif tostring(i)=="add" then --buttons to add new shit
+						
+							table.insert(filtacsesspoint.tags, "")
+						elseif tostring(i)=="bool" then
+							
+							table.insert(filtacsesspoint.tags, {type="and",tags={""}} )
+						elseif i=="type" then
+							
+							local negation={ ["and"]="nand" , ["or"]="nor" , ["xor"]="nxor" , ["nand"]="and" , ["nor"]="or" , ["nxor"]="xor"   }
+							local next={  ["and"]="or" , ["or"]="xor" , ["xor"]="and" , ["nand"]="nor" , ["nor"]="nxor" , ["nxor"]="nand"   }
+							print( filtacsesspoint.type )
+							if action_id==hash"m1" then --cycle through
+								filtacsesspoint.type= next[filtacsesspoint.type]
+
+							elseif action_id==hash"m2" then --negate
+								filtacsesspoint.type= negation[filtacsesspoint.type]
+							end	
+							
+							
+						end
+						
+					end	
+				else
+					if i~="tc" then
+				--	tempeditstring=tempeditstring..i.."\r" --storing path info here
+					filtacsesspoint[i]= fuckme(tabel[i],filtacsesspoint[i],false,pathstring..i.."\r")
+
+					else
+						for boxitem in pairs(v) do
+							if not gui.get_text(v[boxitem]) then
+								local siz,pos = gui.get_size(v[boxitem]) , gui.get_position(v[boxitem])
+								local mx,my = action.screen_x,action.screen_y
+								if mx>=pos.x and mx<=pos.x+siz.x and my<=pos.y and my>=pos.y-siz.y then
+									print(editstring)
+									stringvalue(boxitem)
+								end	
+							end		
+						end
+					end
+					
+					if filtacsesspoint.tags and  #filtacsesspoint.tags == 0 and not protected then
+						filtacsesspoint=nil
+					end
+
+					
+					
+					
+				end
+			end
+		
+			return filtacsesspoint
+		end
+	
+		filters=fuckme(imgobj , filters,true,"")
+		if not validbox then editstring=nil print("clear") end --clickoff detection
+		
+		--pprint( filters )
+			
+	end
+--	print(editstring)
+	
+
+if action_id==hash"text" then
+	if editstring then
+		stringvalue(  (stringvalue() or "")..action.text:lower()      )
+	end
+	
+end
+
+	if action_id==hash"delete" and (action.pressed or action.repeated) then
+		if editstring then
+		local w= stringvalue()
+		stringvalue(  w:sub(1,#w -1)      )
+		end
+	end
+
+	if action_id==hash"esc" then
+		editstring=nil
+	end
+
+	if action_id==hash"mwu" then
+		if programdata.filterscroll <0 then
+			programdata.filterscroll=	programdata.filterscroll +delta*config.scrollsen*programdata.height
+		end
+		
+	end
+	
+	if action_id==hash"mwd" then
+		programdata.filterscroll=	programdata.filterscroll -delta*config.scrollsen*programdata.height
+	end
+	
+end
+

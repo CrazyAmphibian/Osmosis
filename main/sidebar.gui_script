@@ -1,0 +1,154 @@
+local elements={}
+local next,prev=0,0
+function init(self)
+	msg.post(".", "acquire_input_focus")
+	
+
+	
+end
+
+function update(self, dt)
+	for i in pairs(elements) do
+		gui.set_alpha(elements[i] , 0)
+		gui.delete_node(elements[i])
+		elements[i]=nil
+	end
+	
+	if not programdata.sidebar then goto skip end
+
+
+
+
+	elements["back"]  =  gui.new_box_node( vmath.vector3(0,programdata.height,0)   , vmath.vector3(  .2*config.guiscale*programdata.width , programdata.height,0)   )
+	gui.set_color(elements.back, vmath.vector3(.2,.2,.2))
+	gui.set_pivot(elements.back, 8)
+
+	elements["screenimg"] = gui.new_box_node(  vmath.vector3(    .1*config.guiscale*programdata.width   ,programdata.height,0)  ,      vmath.vector3(  50*config.guiscale , 50*config.guiscale  ,0)  )
+	gui.set_pivot(elements.screenimg, 1)
+	gui.set_texture(elements.screenimg,     "srcimg"   )
+	gui.play_flipbook(elements.screenimg,   programdata.screen  )
+
+
+	elements["nextimg"] = gui.new_box_node(  vmath.vector3(.1*config.guiscale*programdata.width + (25+50)*.5*config.guiscale  ,programdata.height-50*config.guiscale ,0)        ,  vmath.vector3(  25*config.guiscale , 25*config.guiscale  ,0)  )
+	gui.set_pivot(elements.nextimg, 1)
+	gui.set_texture(elements.nextimg,     "srcimg"   )
+
+	elements["previmg"] = gui.new_box_node(  vmath.vector3(.1*config.guiscale*programdata.width + (25+50)*.5*config.guiscale  ,programdata.height-50*config.guiscale ,0)        ,  vmath.vector3(  25*config.guiscale , 25*config.guiscale  ,0)  )
+	gui.set_pivot(elements.previmg, 1)
+	gui.set_texture(elements.previmg,     "srcimg"   )
+
+	elements["screentext"]= gui.new_text_node(vmath.vector3(    .1*config.guiscale*programdata.width   ,programdata.height - 50*config.guiscale  ,0), programdata.screen )
+	gui.set_pivot(elements.screentext, 1)
+	gui.set_scale(elements.screentext,  vmath.vector3(      config.guiscale * 1.5 , config.guiscale * 1.5 , config.guiscale * 1.5   ) )
+
+
+
+	elements["nextarrow"] = gui.new_box_node(vmath.vector3(0,0,0) , vmath.vector3(0,0,0) )
+	gui.set_pivot(elements.nextarrow, 1)
+	gui.set_texture(elements.nextarrow,     "srcimg"   )
+	gui.play_flipbook(elements.nextarrow, "arrowleft")
+
+	elements["prevarrow"] = gui.new_box_node(vmath.vector3(0,0,0) , vmath.vector3(0,0,0) )
+	gui.set_pivot(elements.prevarrow, 1)
+	gui.set_texture(elements.prevarrow,     "srcimg"   )
+	gui.play_flipbook(elements.prevarrow, "arrowright")
+
+
+
+
+
+	
+	gui.set_position(elements.back  , vmath.vector3(0,programdata.height,0))
+	gui.set_size(elements.back, vmath.vector3(  config.guiscale*200 , programdata.height,0) )
+	gui.set_position(elements.screenimg  ,   vmath.vector3(   100*config.guiscale  ,programdata.height,0) )
+	gui.set_position(elements.screentext  , vmath.vector3(100*config.guiscale   ,programdata.height - 50*config.guiscale  ,0) )
+	gui.set_scale(elements.screentext,  vmath.vector3(      config.guiscale * 1.5 , config.guiscale * 1.5 , config.guiscale * 1.5   ) )
+	gui.play_flipbook(elements.screenimg,   programdata.screen  )
+
+	next=0
+	prev=0
+	local current=0
+	for i,v in pairs(programdata.screenorder) do
+		if v==programdata.screen then current=i end
+	end
+	prev=current-1
+	if prev <1 then prev = #programdata.screenorder + prev end
+	next = current+1
+	if next > #programdata.screenorder  then next = next-#programdata.screenorder  end
+
+gui.play_flipbook(elements.nextimg,   programdata.screenorder[prev]      )
+
+gui.play_flipbook(elements.previmg,   programdata.screenorder[next]      ) --yes, the whole order is backwards. it just works.
+
+	gui.set_position( elements.nextimg ,   vmath.vector3(100*config.guiscale + 38*config.guiscale  ,programdata.height-20*config.guiscale ,0)    )
+	gui.set_position( elements.previmg ,   vmath.vector3(100*config.guiscale - 38*config.guiscale  ,programdata.height-20*config.guiscale ,0)    )
+
+	gui.set_text(elements.screentext, programdata.screen)
+	
+	gui.set_position(elements.prevarrow, vmath.vector3(100*config.guiscale - 75*config.guiscale  ,programdata.height ,0) )
+	gui.set_size(elements.prevarrow, vmath.vector3( 50*config.guiscale , 50*config.guiscale , 0  ) )
+	
+	gui.set_position(elements.nextarrow, vmath.vector3(100*config.guiscale + 75*config.guiscale  ,programdata.height ,0) )
+	gui.set_size(elements.nextarrow, vmath.vector3( 50*config.guiscale , 50*config.guiscale , 0  ) )
+	
+	for i in pairs(elements) do
+		gui.set_alpha(elements[i] , 1)
+	end
+
+	gui.move_above(elements["back"] , nil)
+	for i in pairs(elements) do
+		if i~="back" then gui.move_above(elements[i] , nil) end
+	end
+
+	
+	::skip::
+end
+
+function on_message(self, message_id, message, sender)
+	-- Add message-handling code here
+	-- Learn more: https://defold.com/manuals/message-passing/
+	-- Remove this function if not needed
+end
+
+function on_input(self, action_id, action)
+
+
+	if not programdata.sidebar then return end
+	if action_id==hash"left" and action.pressed then
+		programdata.screen=programdata.screenorder[next]
+	end
+	if action_id==hash"right" and action.pressed  then
+		programdata.screen=programdata.screenorder[prev]
+	end
+
+	if action_id==hash"m1" and action.pressed then
+		local x = action.screen_x
+		local y=action.screen_y
+
+		--now check the buttons for click detection
+		local tocheck="nextarrow"
+		::cycle::
+		
+		local siz = gui.get_size(elements[tocheck])
+		local pos = gui.get_position(elements[tocheck])
+			
+		if x >= pos.x-siz.x/2 and x<= pos.x+siz.x/2  and y >= pos.y-siz.y and y<=pos.y then --specific to the anchor point, actually.
+			if tocheck =="nextarrow" then
+				programdata.screen=programdata.screenorder[prev]
+			elseif tocheck =="prevarrow"then
+				programdata.screen=programdata.screenorder[next] --y'know, it's kinda just too fucked at this point for me to fix it.
+			end
+		end
+		
+		
+		if tocheck=="nextarrow" then tocheck="prevarrow" goto cycle end --just about the stupidest way to do this. oh well.
+		
+	end
+		
+end
+
+function on_reload(self)
+	-- Add reload-handling code here
+	-- Learn more: https://defold.com/manuals/hot-reload/
+	-- Remove this function if not needed
+end

@@ -1,0 +1,193 @@
+local imageobjects={}
+local textures={}
+local mx,my=0,0
+function init(self)
+	msg.post(".", "acquire_input_focus")
+end
+
+function final(self)
+	-- Add finalization code here
+	-- Learn more: https://defold.com/manuals/script/
+	-- Remove this function if not needed
+end
+
+function update(self, dt)
+	if programdata.sidebar then goto skip  end
+	for i in pairs(imageobjects ) do
+		gui.delete_node(imageobjects[i])
+		imageobjects[i]=nil --clear objects every refresh.
+	end
+	visnum=0 --[[
+	for i in pairs(textures) do
+		gui.delete_texture(i)
+		textures[i]=nil
+	end]]
+
+	if  programdata.screen ~="gallery" then goto skip end
+
+	
+	local xoffset,yoffset = ( programdata.width*config.galleryimagepadding )   ,0
+	local n=1
+	local bigboy=0 --largest y-num
+	local padwidth,padheight =programdata.width*config.galleryimagepadding , programdata.height*config.galleryimagepadding --save processing time
+
+	local xscaleconstant = ((programdata.width  -    (config.imagesperrow+1)*padwidth -config.guiscale*15    )    /(config.imagesperrow))
+
+	local countofimg=0
+	for i in pairs(images) do
+		countofimg=countofimg+1
+		if not images[i].width then
+			local f,e=io.open("images/"..i ,"rb") --open in read binary mode, because windows sucks. 
+			if not f then print("error reading file "..i.." removing from image pool." , e) images[i]=nil tags[i]=nil goto skip end
+			local td = f:read("*a")
+			local im =  image.load( td)  
+			images[i] = {  width=im.width , height=im.height , data=td } --only keeping part of this in memory, preserve RAM, unlike last time, dipshit. the size is needed for spacing.
+			f:close()
+			if countofimg>config.loadnum then break end
+		end
+	end
+
+
+	
+	
+	for i,imgdata in pairs(images) do --first get the layout up
+		if  not showing[i] then goto next end
+	--	print(i)
+
+		
+		local xmult =  xscaleconstant/ (imgdata.width or 1 )
+		local ymult = xmult --multipliers for image size depending on settings and whatnot.
+
+
+	
+	programdata.maxgalscroll=yoffset
+
+--merging for loops, don't mind me
+	
+
+--now check of they need their textures loaded in memory
+		local visible=true
+
+		local imagesize = ymult*(imgdata.height or 1)
+		local imagepos = programdata.galleryscroll+programdata.height -  yoffset  - padheight
+		local viewbottom,viewtop = programdata.galleryscroll , programdata.galleryscroll + programdata.height
+
+
+
+		--[[
+		if imagepos  + viewbottom  >= viewtop+imagesize then visible=false end
+		if imagepos+viewtop+imagesize <= viewtop then visible=fasle end
+		]]
+		if imagepos < 0 then visible=false end
+		if imagepos-imagesize > programdata.height then visible=false end
+			
+			
+		if visible then
+
+			if (not imgdata.width) or (not imgdata.height) then --alt image loading. hopefully works better as to not frontload it all.
+				--print(i)
+				local f=io.open("images/"..i ,"rb") --open in read binary mode, because windows sucks. 
+				local td = f:read("*a")
+				local im =  image.load( td)  
+				images[i] = {  width=im.width , height=im.height , data=td } --only keeping part of this in memory, preserve RAM, unlike last time, dipshit. the size is needed for spacing.
+				imgdata=images[i]
+				f:close()
+			end
+
+			
+
+			imageobjects[i] = gui.new_box_node(   vmath.vector3(  xoffset ,  programdata.galleryscroll+programdata.height -  yoffset  - padheight   ,0 )  , vmath.vector3( xmult*(imgdata.width or 1) , ymult*(imgdata.height or 1) , 0      ) )
+			gui.set_pivot(imageobjects[i] , 8) -- top left is 0,0
+			
+			visnum=visnum+1
+
+			
+			if not textures[i] or false then --bugged
+				local tex=image.load(images[i].data)  --image.load( f:read("*a")  )
+			gui.new_texture(i, tex.width, tex.height, tex.type, tex.buffer)  --only create texture if needed.
+			print("made texture")
+			textures[i]=true end
+		gui.set_texture(imageobjects[i], i)
+	
+	else
+		if textures[i] then  gui.delete_texture(i) end
+		textures[i]=false
+	end
+
+	xoffset=xoffset+(imgdata.width or 1)*xmult +padwidth
+	bigboy= math.max(bigboy, ymult*(imgdata.height or 1))
+	if n%config.imagesperrow ==0 then
+		yoffset=yoffset+bigboy+ padheight
+		xoffset = padwidth
+		bigboy=(imgdata.height or 1)*ymult
+	end
+	n=n+1
+
+	
+		::next::
+	end
+
+
+	imageobjects["\\scrollback"] = gui.new_box_node(vmath.vector3(programdata.width-config.guiscale*15 , programdata.height , 0) , vmath.vector3(config.guiscale*15,programdata.height , 0))
+	gui.set_pivot(imageobjects["\\scrollback"], 8)
+	gui.set_color(imageobjects["\\scrollback"], vmath.vector3(.25,.25,.25))
+	
+	--print(programdata.galleryscroll,programdata.maxgalscroll)
+	imageobjects["\\scrollselector"] = gui.new_box_node(vmath.vector3(programdata.width-config.guiscale*15 , programdata.height* (1-(programdata.galleryscroll/math.max(programdata.maxgalscroll,1))) , 0) , vmath.vector3(config.guiscale*15,config.guiscale*500*programdata.height/(programdata.maxgalscroll) , 0))
+	gui.set_pivot(imageobjects["\\scrollselector"], 7)
+	gui.set_color(imageobjects["\\scrollselector"], vmath.vector3(.75,.75,.75))
+
+	
+	--print(dt,visnum)
+	::skip::
+end
+
+function on_message(self, message_id, message, sender)
+	-- Add message-handling code here
+	-- Learn more: https://defold.com/manuals/message-passing/
+	-- Remove this function if not needed
+end
+
+function on_input(self, action_id, action)
+
+	if not action_id then
+		mx,my = action.screen_x , action.screen_y
+	end
+
+	
+	if programdata.screen=="gallery" and action_id==hash"m1" and action.pressed  and (not programdata.sidebar) then
+	--	programdata.selectedimage
+		for i in pairs(imageobjects) do
+			local ipos = gui.get_position(imageobjects[i])
+			local isiz = gui.get_size(imageobjects[i])
+
+
+			
+			if  mx >= ipos.x  and mx <= ipos.x + isiz.x and my <= ipos.y and my >= ipos.y -isiz.y and i:sub(1,1) ~="\\" then  -- and my >= ipos.y + isiz.y 
+				programdata.selectedimage=i
+				programdata.screen="image"
+				programdata.debounce=false
+				break
+			end
+		end
+		--print( programdata.selectedimage )
+	end
+
+	if programdata.screen=="gallery" and action_id==hash"m1" and (not programdata.sidebar) then
+		--local pos,siz = gui.get_position(imageobjects["\\scrollback"]) , gui.get_size(imageobjects["\\scrollback"])
+		if action.screen_x >= programdata.width-config.guiscale*15 then
+			programdata.galleryscroll = programdata.maxgalscroll* (programdata.height-action.screen_y)/programdata.height
+		end
+		
+	end
+
+
+
+	
+end
+
+function on_reload(self)
+	-- Add reload-handling code here
+	-- Learn more: https://defold.com/manuals/hot-reload/
+	-- Remove this function if not needed
+end
