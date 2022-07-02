@@ -44,6 +44,8 @@ controls:
 		right click: negate "boolean filters"
 		left click: cycle "boolean filters"
 		right click: remove tag
+		scroll: scroll up/down
+		scroll+shift: scroll left/right
 
 
 "boolean filters":
@@ -77,10 +79,17 @@ known issues/notes:
 	images are not initialized at startup (too long), and may result in flashes of color when scrolling quickly when program has just started
 		- again, no good solution. you can increase "image loading count" in settings to offset this.
 	some images fail to load ("invalid argument")
-		-there is no solution, as diffrent setups don't always replicate this behavior. program has been hardened against this to prevent crashes.
-	when opening the sidebar, text dissapears.
-		-this is an engine limitation, as text is drawn above other GUI elements, so this is done to prevent the sidebar being covered up.
+		-thre is no solution, as diffrent setups don't always replicate this behavior. program has been hardened against this to prevent crashes.
 
 
 todo:
-	implement horizontal scrolling in tag filtering menu
+	
+
+
+changelog:
+
+	1.0.1
+		added horizontal scrolling in tag screen
+
+	1.0
+		initial release
