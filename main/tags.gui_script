@@ -83,9 +83,9 @@ function update(self, dt)
 	
 	
 	deleteelements(imgobj)
-	if programdata.screen~="tags" then programdata.filterscroll=0 editstring=nil goto skip end
+	if programdata.screen~="tags" then programdata.filterscroll=0 programdata.tagshorcroll=0 editstring=nil goto skip end
 
-	local xoff= 0+config.guiscale*10
+	local xoff= 0+config.guiscale*10 + programdata.tagshorcroll
 	local yoff=0 + 10*config.guiscale + programdata.filterscroll
 	local autocomplete={x=nil,y=nil,str=nil,enabled=false}
 	local function makeelementsfromfilts(filtt,elemt,lv,hide,pathing) --filter table, element table, depth.
@@ -298,14 +298,21 @@ end
 	end
 
 	if action_id==hash"mwu" then
-		if programdata.filterscroll <0 then
-			programdata.filterscroll=	programdata.filterscroll +delta*config.scrollsen*programdata.height
+		if programdata.shift then
+			programdata.tagshorcroll=programdata.tagshorcroll+programdata.width*1*config.scrollsen/20
+		else
+			if programdata.filterscroll <0 then
+				programdata.filterscroll=	programdata.filterscroll +delta*config.scrollsen*programdata.height
+			end
 		end
-		
 	end
 	
 	if action_id==hash"mwd" then
-		programdata.filterscroll=	programdata.filterscroll -delta*config.scrollsen*programdata.height
+		if programdata.shift then
+			programdata.tagshorcroll=programdata.tagshorcroll-programdata.width*1*config.scrollsen/20
+		else
+			programdata.filterscroll=	programdata.filterscroll -delta*config.scrollsen*programdata.height
+		end
 	end
 	
 end

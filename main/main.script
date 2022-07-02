@@ -173,6 +173,7 @@ function reload() --refreshes all images, tags, ect
 	config.tagcolors=config.tagcolors or {}
 	config.defaulttagcolors=config.defaulttagcolors or {t={1,1,1} , b={.1,.1,.1} }
 	config.loadnum=config.loadnum or 10
+	
 	local imagestor= getfiles("images")
 	for _,v in pairs(imagestor) do
 		if not ( v:sub(#v-3 ,#v  ):lower()==".png" or v:sub(#v-3 ,#v  ):lower()==".jpg" or v:sub(#v-4 ,#v  ):lower()==".jpeg"  ) then goto next end
@@ -219,6 +220,7 @@ function reload() --refreshes all images, tags, ect
 	programdata.shift=false
 	programdata.control=false
 	programdata.settingscroll=0
+	programdata.tagshorcroll=0
 	writeconfigfile()
 	filters={type="and",tags={}}
 	
