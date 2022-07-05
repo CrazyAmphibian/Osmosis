@@ -221,6 +221,7 @@ function reload() --refreshes all images, tags, ect
 	programdata.control=false
 	programdata.settingscroll=0
 	programdata.tagshorcroll=0
+	programdata.imageorder={} --stores the order of images on the gallery.
 	writeconfigfile()
 	filters={type="and",tags={}}
 	

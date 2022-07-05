@@ -40,9 +40,12 @@ end
 
 function update(self, dt)
 
-
-
-
+	if imageobjects["image"] then
+		gui.delete_node(imageobjects["image"])
+		imageobjects["image"]=nil
+	
+		if mimg then gui.delete_texture("mimg") mimg=false   end
+	end
 	
 	if programdata.sidebar then
 		for i in pairs(imageobjects) do
@@ -63,9 +66,9 @@ function update(self, dt)
 		imageobjects[i]=nil
 	end
 
-	if mimg then gui.delete_texture("mimg") mimg=false end
-
-
+	if mimg then gui.delete_texture("mimg") mimg=false  end
+	
+	
 	if  programdata.screen ~="image" then programdata.fullimagemode=false programdata.imgys=0 programdata.imgxs=0 programdata.imgz=1 goto skip end
 	if not programdata.selectedimage then goto skip end
 	local imgscale = math.min( (programdata.width-config.guiscale*150-config.galleryimagepadding*programdata.width*2)/images[programdata.selectedimage].width ,
@@ -183,7 +186,9 @@ function update(self, dt)
 	local tex =image.load(images[programdata.selectedimage].data  )
 	gui.new_texture("mimg", tex.width, tex.height, tex.type, tex.buffer)
 	mimg=true
-	gui.set_texture(imageobjects["image"], "mimg" )
+	gui.set_texture_data("mimg", tex.width, tex.height, tex.type, tex.buffer)
+	gui.set_texture(imageobjects["image"], "mimg" )  
+	
 
 	if programdata.fullimagemode then
 		--imageobjects["image"]
@@ -207,7 +212,7 @@ function on_message(self, message_id, message, sender)
 end
 
 function on_input(self, action_id, action)
-	if programdata.screen~="image" or (not programdata.debounce) then return end
+	if programdata.screen~="image" or (not programdata.debounce ) then return end --debounce is to prevent double clicks
 	
 	
 	if action_id==hash"esc" and action.pressed then transfer(nil, true) programdata.screen="gallery" programdata.tagscroll=0 end
@@ -308,6 +313,35 @@ function on_input(self, action_id, action)
 		if action_id==hash"delete" and editstring and (action.pressed or action.repeated) then tempstring=tempstring:sub(1,#tempstring-1) end
 	end
 
+	if not programdata.sidebar and not programdata.fullimagemode then --this shit doesn't work. why?
+		if action_id==hash"left" and (action.pressed or action.repeated) then 
+			local num
+			for i,v in pairs(imageorder) do
+				if v==programdata.selectedimage then
+					num=i
+					break
+				end
+			end
+			programdata.selectedimage= imageorder[num-1] or programdata.selectedimage
+			programdata.imgxs=0 -- reset scrolling and the like when swapping
+			programdata.imgys=0 
+			programdata.imgz=1
+		end
+		
+		if action_id==hash"right" and (action.pressed or action.repeated)  then
+			local num
+			for i,v in pairs(imageorder) do
+				if v==programdata.selectedimage then
+					num=i
+					break
+				end
+			end
+			programdata.selectedimage= imageorder[num+1] or programdata.selectedimage
+			programdata.imgxs=0 -- reset scrolling and the like when swapping
+			programdata.imgys=0 
+			programdata.imgz=1
+		end
+	end
 
 	
 end

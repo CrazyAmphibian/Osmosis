@@ -35,6 +35,7 @@ controls:
 		right click: remove tag 
 		enter: confirm tag entry
 		scroll: scroll the image tags
+		arrow keys: go to next/previous image
 	image view (full size mode):
 		left click: return to regular view mode
 		scroll: scroll up/down
@@ -70,7 +71,7 @@ controls:
 supported platforms:
 	windows: tested to work on 64-bit windows 10, but should work on earlier versions and 32 bit as well.
 	linux: tested on 64-bit Ubuntu, but should work on other distros.
-	MacOS: does not work, and is not likley able to for lack of hardware to test it on. (feel free to try)
+	MacOS: does not work, and is not likley able to for lack of hardware to test it on. (feel free to try (main script: OS-specific functions))
 
 
 known issues/notes:
@@ -87,6 +88,8 @@ todo:
 
 
 changelog:
+	1.0.2
+		added arrow key controls to navigate to the next/previous image in the image view mode 
 
 	1.0.1
 		added horizontal scrolling in tag screen

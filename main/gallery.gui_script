@@ -49,11 +49,11 @@ function update(self, dt)
 
 
 	
-	
+	imageorder={}
 	for i,imgdata in pairs(images) do --first get the layout up
 		if  not showing[i] then goto next end
 	--	print(i)
-
+		table.insert(imageorder, i)
 		
 		local xmult =  xscaleconstant/ (imgdata.width or 1 )
 		local ymult = xmult --multipliers for image size depending on settings and whatnot.
