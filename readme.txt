@@ -88,6 +88,10 @@ todo:
 
 
 changelog:
+	1.0.3
+		changing images now resets the scroll position of tags
+		you now have to click the image to swap to full screen view and not to the right of tags
+
 	1.0.2
 		added arrow key controls to navigate to the next/previous image in the image view mode 
 

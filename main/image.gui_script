@@ -69,7 +69,7 @@ function update(self, dt)
 	if mimg then gui.delete_texture("mimg") mimg=false  end
 	
 	
-	if  programdata.screen ~="image" then programdata.fullimagemode=false programdata.imgys=0 programdata.imgxs=0 programdata.imgz=1 goto skip end
+	if  programdata.screen ~="image" then programdata.fullimagemode=false programdata.imgys=0 programdata.imgxs=0 programdata.imgz=1 programdata.tagscroll=0 goto skip end
 	if not programdata.selectedimage then goto skip end
 	local imgscale = math.min( (programdata.width-config.guiscale*150-config.galleryimagepadding*programdata.width*2)/images[programdata.selectedimage].width ,
 			(programdata.height-config.galleryimagepadding*programdata.height*2-config.guiscale*10)/images[programdata.selectedimage].height  )	
@@ -274,9 +274,12 @@ function on_input(self, action_id, action)
 					tempstring=""
 					transfer(nil)
 				end
-			elseif action.screen_x >= config.guiscale*150 and not programdata.fullimagemode then
-				transfer(nil)
-				programdata.fullimagemode=true
+			elseif action.screen_x >= config.guiscale*150 and not programdata.fullimagemode then --swap when clicked
+				local ims , ips = gui.get_size(imageobjects["image"]) , gui.get_position(imageobjects["image"])
+					if action.screen_x >= ips.x and action.screen_x <= ips.x + ims.x and action.screen_y <= ips.y and action.screen_y >= ips.y-ims.y then
+						transfer(nil)
+						programdata.fullimagemode=true
+					end
 			elseif programdata.fullimagemode then programdata.fullimagemode=false 
 			else
 				transfer(nil)
@@ -326,6 +329,7 @@ function on_input(self, action_id, action)
 			programdata.imgxs=0 -- reset scrolling and the like when swapping
 			programdata.imgys=0 
 			programdata.imgz=1
+			programdata.tagscroll=0
 		end
 		
 		if action_id==hash"right" and (action.pressed or action.repeated)  then
@@ -340,6 +344,7 @@ function on_input(self, action_id, action)
 			programdata.imgxs=0 -- reset scrolling and the like when swapping
 			programdata.imgys=0 
 			programdata.imgz=1
+			programdata.tagscroll=0
 		end
 	end
 
