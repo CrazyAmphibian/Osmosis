@@ -81,13 +81,19 @@ known issues/notes:
 		- again, no good solution. you can increase "image loading count" in settings to offset this.
 	some images fail to load ("invalid argument")
 		-thre is no solution, as diffrent setups don't always replicate this behavior. program has been hardened against this to prevent crashes.
-
+	Osmosis uses the Defold game engine. scripts are programmed in Lua. for documentation visit the respective links:
+		Lua: https://www.lua.org/docs.html
+		Defold: https://defold.com/ref/stable/buffer/
 
 todo:
 	
 
 
 changelog:
+	1.0.4
+		no longer continuosuly reloads image data on image view.
+		added safeguards for loading unloaded images.
+			seeking to fix in the future. happens because only being in gallery view loads image data.
 	1.0.3
 		changing images now resets the scroll position of tags
 		you now have to click the image to swap to full screen view and not to the right of tags
