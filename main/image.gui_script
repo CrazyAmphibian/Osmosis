@@ -89,6 +89,10 @@ function update(self, dt)
 	if not donotdelete then
 	imageobjects["image"] = gui.new_box_node(vmath.vector3(config.guiscale*150+config.galleryimagepadding*programdata.width ,programdata.height-config.galleryimagepadding*programdata.height-config.guiscale*10,0), vmath.vector3(images[programdata.selectedimage].width*imgscale,images[programdata.selectedimage].height*imgscale,0) )
 	end
+	if imageobjects["image"] then 
+		gui.set_size(imageobjects["image"],  vmath.vector3(images[programdata.selectedimage].width*imgscale,images[programdata.selectedimage].height*imgscale,0)) 
+		gui.set_position(imageobjects["image"], vmath.vector3(config.guiscale*150+config.galleryimagepadding*programdata.width ,programdata.height-config.galleryimagepadding*programdata.height-config.guiscale*10,0))
+	end
 	
 	imageobjects["ttext"] = gui.new_text_node(pos, text)
 	imageobjects["atext"] = gui.new_text_node(pos, text)

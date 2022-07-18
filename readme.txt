@@ -90,10 +90,14 @@ todo:
 
 
 changelog:
+	1.0.5
+		fixed bug caused by 1.0.4 involving full image view swapping.
+
 	1.0.4
 		no longer continuosuly reloads image data on image view.
 		added safeguards for loading unloaded images.
 			seeking to fix in the future. happens because only being in gallery view loads image data.
+
 	1.0.3
 		changing images now resets the scroll position of tags
 		you now have to click the image to swap to full screen view and not to the right of tags
