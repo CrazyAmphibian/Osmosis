@@ -112,8 +112,14 @@ function update(self, dt)
 
 	
 	for i,v in pairs(tabletoparse or {}) do
-		if mode==1 and not i:find(tempstring) then goto next end
 		if mode==1 then 
+			local found
+			for p=1,#i do
+			--	print("\""..tempstring.."\"","\""..i.."\"")
+			if tempstring==i:sub(p,p+#tempstring-1) then found=true break end
+			end
+			if not found then goto next end
+			
 			local f
 			for _,t in pairs(tags[programdata.selectedimage]) do
 				if i==t then goto next end --prevent existing tags from showing up

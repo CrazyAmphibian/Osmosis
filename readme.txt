@@ -90,6 +90,10 @@ todo:
 
 
 changelog:
+	1.1
+		includes previous updates
+	1.0.6
+		fixed erroring on the image tag adding when inputting a ( or [
 	1.0.5
 		fixed bug caused by 1.0.4 involving full image view swapping.
 
