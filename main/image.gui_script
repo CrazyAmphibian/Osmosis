@@ -239,7 +239,15 @@ function on_input(self, action_id, action)
 	if programdata.screen~="image" or (not programdata.debounce ) then return end --debounce is to prevent double clicks
 	
 	
-	if action_id==hash"esc" and action.pressed then transfer(nil, true) programdata.screen="gallery" programdata.tagscroll=0 end
+	if action_id==hash"esc" and action.pressed then
+		if editstring then
+			transfer(nil, true)
+			editstring=nil
+			tempstring=""
+		else
+			transfer(nil, true) programdata.screen="gallery" programdata.tagscroll=0
+		end
+	end
 
 	
 	if not programdata.sidebar and action.pressed then
@@ -331,6 +339,7 @@ function on_input(self, action_id, action)
 			
 		elseif action_id==hash"enter" then 
 			transfer(nil)
+			transfer("\raddtag")
 			
 		end
 	end

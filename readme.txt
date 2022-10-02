@@ -86,10 +86,14 @@ known issues/notes:
 		Defold: https://defold.com/ref/stable/buffer/
 
 todo:
-	
+	add tag implications
+	add tag replacement
 
 
 changelog:
+	1.1.1
+		hitting escape while adding tags to an image no longer returns you to the gallery
+		hitting enter no longer boots you out of the tag adding tab for images
 	1.1
 		includes previous updates
 	1.0.6
