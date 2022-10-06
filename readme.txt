@@ -91,6 +91,10 @@ todo:
 
 
 changelog:
+	1.1.2
+		improved click interaction with adding tags on an image
+		tags are now sorted by count when adding them
+		made the tag filter screen use the better find algorithm
 	1.1.1
 		hitting escape while adding tags to an image no longer returns you to the gallery
 		hitting enter no longer boots you out of the tag adding tab for images

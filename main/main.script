@@ -302,8 +302,15 @@ end
 
 
 
-
-
+function string.search(target,substring) --less fancy string.find that will always "just work"
+	if type(target) ~= "string" then return nil end
+	if not substring or type(substring) ~= "string" then return nil end
+	for i=1,#target do
+		if target:sub(i,i+#substring-1)==substring then
+			return true
+		end
+	end
+end
 
 
 

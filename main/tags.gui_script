@@ -165,8 +165,28 @@ function update(self, dt)
 		imgobj["tc"]={}
 		autocomplete.y=autocomplete.y + config.guiscale*40
 		autocomplete.x=autocomplete.x + config.guiscale*80
+
+
+		newttable={} -- time to copy pase this from the image script
 		for i,v in pairs(programdata.tagcount) do
-			if not i:find(autocomplete.match) then goto next end
+			local added
+			for i2,v2 in pairs(newttable) do
+				if programdata.tagcount[v2]<v then
+					table.insert(newttable, i2 , i)
+					added=true
+					break
+				end
+			end
+			if not added then table.insert(newttable, i) end
+		end
+		
+
+		
+		for i,v in pairs(newttable) do
+			i,v=v,programdata.tagcount[v]
+			
+			if not i:search(autocomplete.match) then goto next end
+			
 		--	print(autocomplete.y)
 			if autocomplete.y > programdata.height then break end
 			imgobj["tc"][i] = gui.new_box_node(vmath.vector3(autocomplete.x,programdata.height-autocomplete.y, 0), vmath.vector3( config.guiscale*300 , config.guiscale*20 ,0    ))

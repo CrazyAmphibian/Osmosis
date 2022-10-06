@@ -106,6 +106,26 @@ function update(self, dt)
 	if editstring =="\raddtag" then
 		mode=1
 		tabletoparse=programdata.tagcount
+
+		tabletoparse={} -- so that the numbers are in an order instead of whatever memory is
+
+		for i,v in pairs(programdata.tagcount) do --doing this has made me see just how unstable this code is. prone to breaking. a lot.
+			local added
+			for i2,v2 in pairs(tabletoparse) do
+				
+				if programdata.tagcount[v2]<v then
+					
+					table.insert(tabletoparse, i2 , i)
+					added=true
+					break
+				end
+				
+			end
+		
+			if not added then table.insert(tabletoparse, i) end
+		end
+		
+		
 	elseif not programdata.fullimagemode then
 		tabletoparse=tags[programdata.selectedimage]
 	end
@@ -113,25 +133,21 @@ function update(self, dt)
 	
 	for i,v in pairs(tabletoparse or {}) do
 		if mode==1 then 
-			local found
-			for p=1,#i do
-			--	print("\""..tempstring.."\"","\""..i.."\"")
-			if tempstring==i:sub(p,p+#tempstring-1) then found=true break end
-			end
-			if not found then goto next end
+
+			if not v:search(tempstring) then goto next end
 			
 			local f
 			for _,t in pairs(tags[programdata.selectedimage]) do
-				if i==t then goto next end --prevent existing tags from showing up
+				if v==t then goto next end --prevent existing tags from showing up
 			end
 		end
 		if yoffset<=0-programdata.height-programdata.tagscroll then goto next end --using break doesn't pair well with this sometimes for whatever reason.
-		local i2=i
-		if mode==1 then i,v = v,i end
+		local i2=v
+		if mode==1 then --[[i,v = v,i]] end
 		
 		imageobjects["b\r"..i2]=gui.new_box_node(vmath.vector3(0,programdata.height+yoffset+programdata.tagscroll,0), vmath.vector3(1,1,0) )
 		gui.set_pivot(imageobjects["b\r"..i2], 8)
-		if mode ==1 then a= i.." " else a="" end
+		if mode ==1 then a=programdata.tagcount[v].." " --[[i.." "]] else a="" end
 		imageobjects["t\r"..i2]=gui.new_text_node(vmath.vector3(0,programdata.height+yoffset+programdata.tagscroll,0),  a ..v)
 		gui.set_pivot(imageobjects["t\r"..i2], 8)
 		gui.set_size(imageobjects["t\r"..i2], vmath.vector3( config.guiscale*150/config.guiscale ,0,0 ) )
@@ -286,7 +302,11 @@ function on_input(self, action_id, action)
 		elseif action_id==hash"m1" then
 			
 			if action.screen_x <= config.guiscale*150 and action.screen_y >= programdata.height-config.guiscale*80 then
-				transfer("\raddtag")
+				if not editstring then
+					transfer("\raddtag")
+				else
+					transfer(nil)
+				end
 			elseif  editstring=="\raddtag"  then
 				local match
 				for i in pairs(imageobjects) do
@@ -296,7 +316,6 @@ function on_input(self, action_id, action)
 						match=i   break end
 					::next::
 				end
-
 				if match then
 					--print(match)
 					tempstring=match:sub(3)
@@ -340,7 +359,6 @@ function on_input(self, action_id, action)
 		elseif action_id==hash"enter" then 
 			transfer(nil)
 			transfer("\raddtag")
-			
 		end
 	end
 
