@@ -109,6 +109,8 @@ todo:
 
 
 changelog:
+	1.2.2
+		probably fixed the >128 images issue, i hope
 	1.2.1
 		fixed settings click detection issues
 	1.2

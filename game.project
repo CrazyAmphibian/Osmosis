@@ -20,3 +20,6 @@ bundle_exclude_resources =
 [label]
 max_count = 128
 
+[graphics]
+max_draw_calls = 2048
+

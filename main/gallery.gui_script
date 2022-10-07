@@ -81,9 +81,10 @@ function update(self, dt)
 		if imagepos < 0 then visible=false end
 		if imagepos-imagesize > programdata.height then visible=false end
 			
-			
-		if visible then
 
+
+		if visible then
+			
 			if (not imgdata.width) or (not imgdata.height) then --alt image loading. hopefully works better as to not frontload it all.
 				--print(i)
 				local f=io.open("images/"..i ,"rb") --open in read binary mode, because windows sucks. 
@@ -102,17 +103,21 @@ function update(self, dt)
 			visnum=visnum+1
 
 			
-			if not textures[i] or false then --bugged
+			if not textures[i] then --bugged
 				local tex=image.load(images[i].data)  --image.load( f:read("*a")  )
-			gui.new_texture(i, tex.width, tex.height, tex.type, tex.buffer)  --only create texture if needed.
-			print("made texture")
-			textures[i]=true end
-		gui.set_texture(imageobjects[i], i)
-	
-	else
-		if textures[i] and not config.keepimagesloaded  then  gui.delete_texture(i) end
-		textures[i]=false
-	end
+				gui.new_texture(i, tex.width, tex.height, tex.type, tex.buffer)  --only create texture if needed.
+				print("made texture")
+				textures[i]=true
+			end
+				local _,err = pcall( function() gui.set_texture(imageobjects[i], i)  end)
+				if err then --[[textures[i]=nil]] print(err ) end
+				local p=0
+				for i,v in pairs(textures) do p=p+1 end print(p)
+			
+		else
+				
+		if textures[i] then  gui.delete_texture(i) textures[i]=nil end
+		end
 
 	xoffset=xoffset+(imgdata.width or 1)*xmult +padwidth
 	bigboy= math.max(bigboy, ymult*(imgdata.height or 1))
