@@ -109,6 +109,8 @@ todo:
 
 
 changelog:
+	1.2.1
+		fixed settings click detection issues
 	1.2
 		includes previous versions
 	1.1.3
