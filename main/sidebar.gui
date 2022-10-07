@@ -3,6 +3,14 @@ fonts {
   name: "system_font"
   font: "/builtins/fonts/system_font.font"
 }
+fonts {
+  name: "sysdouble"
+  font: "/main/sysdouble.font"
+}
+fonts {
+  name: "sysoneandhalf"
+  font: "/main/sysoneandhalf.font"
+}
 textures {
   name: "srcimg"
   texture: "/main/srcimg.atlas"

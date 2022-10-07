@@ -45,7 +45,7 @@ function update(self, dt)
 		gui.delete_node(imageobjects["image"])
 		imageobjects["image"]=nil
 	
-		if mimg and not donotdelete then gui.delete_texture("mimg") mimg=false   end
+		if mimg and not donotdelete and not config.keepimagesloaded then gui.delete_texture("mimg") mimg=false   end
 	end
 	
 	if programdata.sidebar then
@@ -69,7 +69,7 @@ function update(self, dt)
 		end
 	end
 
-	if mimg and not donotdelete then gui.delete_texture("mimg") mimg=false  end
+	if mimg and not donotdelete and not config.keepimagesloaded then gui.delete_texture("mimg") mimg=false  end
 	
 	
 	if  programdata.screen ~="image" then programdata.fullimagemode=false donotdelete=false programdata.imgys=0 programdata.imgxs=0 programdata.imgz=1 programdata.tagscroll=0 goto skip end
@@ -349,7 +349,7 @@ function on_input(self, action_id, action)
 				end
 
 				if match then
-					print("deleted tag "..tags[programdata.selectedimage][tonumber(match:sub(3))] .." from image ".. programdata.selectedimage  )
+					print("deleted tag "..(tags[programdata.selectedimage][tonumber(match:sub(3))] or "") .." from image ".. programdata.selectedimage  )
 					table.remove( tags[programdata.selectedimage] , tonumber(match:sub(3)) )
 					writetag(programdata.selectedimage , tags[programdata.selectedimage])
 					

@@ -1,0 +1,617 @@
+local guicomponents={}
+local tempstring=nil
+local editmode=nil
+local editpath={}
+local editfunc
+local autofill={enabled=false,x=0,y=0}
+local editx,edity --used for checking shit. real;llllly spaghetti code here. really, really bad.
+local scroll=0
+local hscroll=0
+
+
+local negation={ ["and"]="nand" , ["or"]="nor" , ["xor"]="nxor" , ["nand"]="and" , ["nor"]="or" , ["nxor"]="xor"   }
+local next={  ["and"]="or" , ["or"]="xor" , ["xor"]="and" , ["nand"]="nor" , ["nor"]="nxor" , ["nxor"]="nand"   }
+
+function init(self)
+	msg.post(".", "acquire_input_focus")
+	--[[
+	plan:
+	tag implications will work like the boolean logic for images
+	cases can exist for both true and false
+	each case can add and subtract tags as needed
+	]]
+end
+
+
+function update(self, dt)
+	autofill.enabled=false
+	for i,v in pairs(guicomponents) do
+		gui.delete_node(guicomponents[i].node)
+		guicomponents[i]=nil
+	end
+
+
+	--[[
+	structure of implications:
+	implications={
+		[1]={
+			["checks"]={{},{{}}} --the conditions checked. same structure as the image filtering tag checks
+			["false"]={["add"]={"b"}   ["sub"]={"a"}   } --if they fail
+			["true"]={["add"]={"a"}   ["sub"]={"b"}   } --this is for if the conditions pass, what is added or removed
+		},...
+	}
+	of, what if instead of:
+	["false"]={["add"]={"b"}   ["sub"]={"a"}   }
+	i did
+	["false"]={ {tag="b",change="add"} , {tab="a", change="sub"}   }
+	yeah, that seems better to code, actually.
+	]]
+	if  programdata.screen=="implications" then goto donotimply end
+	--print("it's doing it")
+	for _,impl in pairs(config.implications or {}) do
+		for i,taglist in pairs(tags) do
+			local res=booleancomparison(impl.checks , taglist) --REMEMBER THAT THIS OUTPUTS A NUMBER AND NOT A BOOLEAN, FUCKIFSJDUFSNDIFNSDLKJFNJKSDBFKSNJK
+
+			local todo={add={},sub={}}
+			if res>0 then 
+				todo = impl["true"]
+			else 
+				todo = impl["false"]
+			end
+
+			--change stuff if needed
+			local changed
+			for _,tagtodo in pairs(todo) do
+																			if false then	break end --dev protection.
+				local res=tagtodo.tag:isin(taglist)
+				if not res and tagtodo.change=="add" then
+					table.insert(taglist, tagtodo.tag)
+					changed=true
+				elseif res and tagtodo.change=="sub" then
+					table.remove(taglist,res)
+					changed=true
+				end
+			end
+			if changed then writetag(i , taglist) end
+				
+		end
+	end
+	::donotimply::
+
+	if  programdata.screen~="implications" then return end
+	if programdata.sidebar then return end
+
+
+	--now to do the GUI shittery
+
+	local xoff=0--hscroll or 0 --this is really buggy for no reason. fuck you.
+	local yoff=scroll or 0
+
+	local gscale = config.guiscale
+	
+	local node
+	
+	node = gui.new_text_node(vmath.vector3(programdata.width/4+xoff,programdata.height+yoff,0), "ACTIONS")
+	gui.set_font(node, "sysdouble")
+	gui.set_scale(node, vmath.vector3(gscale,gscale,0))
+	gui.set_pivot(node, gui.PIVOT_N)
+	table.insert(guicomponents, {node=node}) --this system should hopefully be less ass to use
+	
+	node = gui.new_text_node(vmath.vector3(3*programdata.width/4+xoff,programdata.height+yoff,0), "CONDITIONALS")
+	gui.set_scale(node, vmath.vector3(gscale,gscale,0))
+	gui.set_font(node, "sysdouble")
+	gui.set_pivot(node, gui.PIVOT_N)
+	table.insert(guicomponents, {node=node})
+	
+	node = gui.new_box_node(vmath.vector3(programdata.width/2+xoff,programdata.height/2,0), vmath.vector3(5*gscale,programdata.height,0))
+	table.insert(guicomponents, {node=node})
+
+	node = gui.new_box_node(vmath.vector3(programdata.width/2+xoff,programdata.height-gscale*30+yoff,0), vmath.vector3(programdata.width,5*gscale,0))
+	table.insert(guicomponents, {node=node})
+	yoff=yoff-35*gscale
+
+
+	
+	for implindex,impl in pairs(config.implications or {}) do
+		yoff1,yoff2 = yoff,yoff --used for the split-collum approach
+		xoff1,xoff2 = xoff,xoff
+		
+		--if true (passed)
+		node = gui.new_text_node(vmath.vector3(xoff1,programdata.height+yoff1,0), "IF TRUE")
+		gui.set_scale(node, vmath.vector3(gscale,gscale,0))
+		gui.set_font(node, "sysdouble")
+		gui.set_pivot(node, gui.PIVOT_NW)
+		table.insert(guicomponents, {node=node})
+		yoff1=yoff1-28*gscale
+
+		--xoff1=xoff1+40*gscale
+		
+		for i,v in pairs(impl["true"]) do	
+			local tc=gettagcolor(v.tag)
+
+
+			
+			if editmode=="tag" and editpath[1]==implindex and editpath[2]=="true" and editpath[3]==i then
+				tc=gettagcolor(tempstring) 	end
+
+			node = gui.new_box_node(vmath.vector3(xoff1,programdata.height+yoff1,0), vmath.vector3(programdata.width/2-50*gscale,40*gscale,0))
+			gui.set_pivot(node, gui.PIVOT_NW)
+	
+			if tc then gui.set_color(node, vmath.vector3(tc.b[1],tc.b[2],tc.b[3] )) end
+			table.insert(guicomponents, {node=node})
+
+			
+
+			node = gui.new_text_node(vmath.vector3(xoff1,programdata.height+yoff1,0), v.change..": "..v.tag )
+			
+			if editmode=="tag" and editpath[1]==implindex and editpath[2]=="true" and editpath[3]==i then
+				gui.set_text(node, v.change..": "..tostring(tempstring))
+				tc=gettagcolor(tempstring)
+				autofill.enabled=true
+				autofill.y=programdata.height+yoff1-40*gscale
+				autofill.x=xoff1+60*gscale
+			end
+			gui.set_pivot(node, gui.PIVOT_NW)
+		
+			--if tc then gui.set_color(node, vmath.vector3(tc.t[1],tc.t[2],tc.t[3] )) end
+			gui.set_font(node, "sysdouble")
+			table.insert(guicomponents, {node=node})
+
+
+
+			
+
+			
+			--trigger event to swap
+			node = gui.new_box_node(vmath.vector3(xoff1,programdata.height+yoff1,0), vmath.vector3(60*gscale,40*gscale,0))
+			gui.set_alpha(node, 0)
+			gui.set_pivot(node, gui.PIVOT_NW)
+			table.insert(guicomponents, {node=node ,action="swaptagmode",towhich="true" , implication=implindex, tag=i})
+			
+			--trigger event for the text
+			node = gui.new_box_node(vmath.vector3(xoff1+60*gscale,programdata.height+yoff1,0), vmath.vector3(programdata.width/2-120*gscale,40*gscale,0))
+			gui.set_alpha(node, 0)
+			gui.set_pivot(node, gui.PIVOT_NW)
+			table.insert(guicomponents, {node=node ,action="activatetexttag",towhich="true" , implication=implindex, tag=i})
+			
+			yoff1=yoff1-40*gscale
+		end
+		--xoff1=xoff1-40*gscale
+
+		--add tag button
+		node = gui.new_box_node(vmath.vector3(xoff1,programdata.height+yoff1,0), vmath.vector3(40*gscale,40*gscale,0))
+		gui.set_texture(node, "srcimg")
+		gui.play_flipbook(node, "add")
+		gui.set_pivot(node, gui.PIVOT_NW)
+		table.insert(guicomponents, {node=node , action="addnewtag" ,towhich="true" , implication=implindex })
+		yoff1=yoff1-40*gscale
+		
+		
+		--if false (failed, boo you suck)
+		node = gui.new_text_node(vmath.vector3(xoff1,programdata.height+yoff1,0), "IF FALSE")
+		gui.set_scale(node, vmath.vector3(gscale,gscale,0))
+		gui.set_font(node, "sysdouble")
+		gui.set_pivot(node, gui.PIVOT_NW)
+		table.insert(guicomponents, {node=node})
+		yoff1=yoff1-28*gscale
+
+		xoff1=xoff1+40*gscale
+		for i,v in pairs(impl["false"]) do
+			local tc=gettagcolor(v.tag)
+
+
+
+			if editmode=="tag" and editpath[1]==implindex and editpath[2]=="false" and editpath[3]==i then
+				tc=gettagcolor(tempstring) 	end
+
+				node = gui.new_box_node(vmath.vector3(xoff1,programdata.height+yoff1,0), vmath.vector3(programdata.width/2-50*gscale,40*gscale,0))
+				gui.set_pivot(node, gui.PIVOT_NW)
+				gui.set_color(node, vmath.vector3(.1,.1,.1))
+				if tc then gui.set_color(node, vmath.vector3(tc.b[1],tc.b[2],tc.b[3] )) end
+				table.insert(guicomponents, {node=node})
+
+
+
+				node = gui.new_text_node(vmath.vector3(xoff1,programdata.height+yoff1,0), v.change..": "..v.tag )
+
+				if editmode=="tag" and editpath[1]==implindex and editpath[2]=="false" and editpath[3]==i then
+					gui.set_text(node, v.change..": "..tostring(tempstring))
+					tc=gettagcolor(tempstring)
+					autofill.enabled=true
+					autofill.y=programdata.height+yoff1-40*gscale
+					autofill.x=xoff1+60*gscale
+				end
+				gui.set_pivot(node, gui.PIVOT_NW)
+				gui.set_color(node, vmath.vector3(1,1,1))
+				--if tc then gui.set_color(node, vmath.vector3(tc.t[1],tc.t[2],tc.t[3] )) end
+				gui.set_font(node, "sysdouble")
+				table.insert(guicomponents, {node=node})
+
+
+
+
+
+
+				--trigger event to swap
+				node = gui.new_box_node(vmath.vector3(xoff1,programdata.height+yoff1,0), vmath.vector3(60*gscale,40*gscale,0))
+				gui.set_alpha(node, 0)
+				gui.set_pivot(node, gui.PIVOT_NW)
+				table.insert(guicomponents, {node=node ,action="swaptagmode",towhich="false" , implication=implindex, tag=i})
+
+				--trigger event for the text
+				node = gui.new_box_node(vmath.vector3(xoff1+60*gscale,programdata.height+yoff1,0), vmath.vector3(programdata.width/2-120*gscale,40*gscale,0))
+				gui.set_alpha(node, 0)
+				gui.set_pivot(node, gui.PIVOT_NW)
+				table.insert(guicomponents, {node=node ,action="activatetexttag",towhich="false" , implication=implindex, tag=i})
+
+				yoff1=yoff1-40*gscale
+				
+		end
+		xoff1=xoff1-40*gscale
+		
+		--add tag button
+		node = gui.new_box_node(vmath.vector3(xoff1,programdata.height+yoff1,0), vmath.vector3(40*gscale,40*gscale,0))
+		gui.set_texture(node, "srcimg")
+		gui.play_flipbook(node, "add")
+		gui.set_pivot(node, gui.PIVOT_NW)
+		table.insert(guicomponents, {node=node , action="addnewtag" ,towhich="false" , implication=implindex })
+		yoff1=yoff1-40*gscale
+		yoff1=yoff1-10*gscale --bit more space
+
+
+		
+
+
+
+		
+		--time for the other side: the conditional
+		--the best way to do this is with a recursive function.
+		--as for how to do the bingings? well.... we will see.
+
+
+
+		function processconditionals(condtable,level,traceback) --time to try to do a traceback
+			xoff2=xoff2-20*gscale
+			if level >0 then
+			node = gui.new_box_node(vmath.vector3(programdata.width/2+xoff2,programdata.height+yoff2,0), vmath.vector3(80*gscale,40*gscale,0))
+			gui.set_pivot(node, gui.PIVOT_NW)
+			gui.set_color(node, vmath.vector3(.1,.1,.1))
+			
+			table.insert(guicomponents, {node=node , action="cycleboolean", traceback=traceback ,m1=function() condtable.type=next[condtable.type]  end , m2=function() condtable.type=negation[condtable.type]  end })
+
+			node = gui.new_text_node(vmath.vector3(programdata.width/2+xoff2,programdata.height+yoff2,0), condtable.type )
+			gui.set_pivot(node, gui.PIVOT_NW)
+			gui.set_font(node, "sysdouble")
+			table.insert(guicomponents, {node=node})
+			end
+			xoff2=xoff2+20*gscale
+			yoff2=yoff2-40*gscale
+			
+			
+			for i,v in pairs(condtable.tags) do
+				if type(v)=="table" then
+					xoff2=xoff2+40*gscale
+					if #v.tags >0  then --remove empty. of course it's buggy
+						table.insert(traceback, "tags")
+						table.insert(traceback, i)
+					
+						processconditionals(v,level+1,traceback)
+						yoff2=yoff2-40*gscale
+					else
+						condtable.tags[i]=nil
+					end
+					xoff2=xoff2-40*gscale
+				else
+
+					local tc = gettagcolor(v)
+					
+					table.insert(traceback, "tags")
+					table.insert(traceback, i)
+					
+					node = gui.new_box_node(vmath.vector3(programdata.width/2+xoff2,programdata.height+yoff2,0), vmath.vector3(80*gscale+programdata.width/2,40*gscale,0))
+					gui.set_pivot(node, gui.PIVOT_NW)
+					gui.set_color(node, vmath.vector3(.1,.1,.1))
+					edity=gui.get_position(node)
+					table.insert(guicomponents, {node=node , action="activatetextcond", traceback=table.copy(traceback) ,m1=function()  tempstring=condtable.tags[i] editmode="bool"  editx=traceback  editfunc=function() condtable.tags[i]=tempstring or ""  end end ,  m2=function() condtable.tags[i]=nil end  })
+					--print(editx,gui.get_position(node))
+				
+					if table.equalto(editpath,traceback) then 
+						
+						v=tempstring or "" 
+						tc = gettagcolor(v)
+						autofill.enabled=true
+						autofill.x,autofill.y=(programdata.width/2+xoff2+60*gscale),(programdata.height+yoff2-40*gscale)
+						
+					
+					end
+					gui.set_color(node, vmath.vector3(tc.b[1],tc.b[2],tc.b[3]))
+					
+					node = gui.new_text_node(vmath.vector3(programdata.width/2+xoff2,programdata.height+yoff2,0), v)
+					gui.set_pivot(node, gui.PIVOT_NW)
+					gui.set_font(node, "sysdouble")
+					gui.set_color(node, vmath.vector3(tc.t[1],tc.t[2],tc.t[3]))
+					table.insert(guicomponents, {node=node })
+					yoff2=yoff2-45*gscale
+				end
+				
+			end
+
+
+
+			
+			
+		--	xoff2=xoff2+40*gscale
+			--the buttons to add shit
+			node = gui.new_box_node(vmath.vector3(programdata.width/2+xoff2,programdata.height+yoff2,0), vmath.vector3(40*gscale,40*gscale,0))
+			gui.set_pivot(node, gui.PIVOT_NW)
+			gui.set_texture(node, "srcimg")
+			gui.play_flipbook(node, "add")
+			table.insert(guicomponents, {node=node , action="newtagtobool", traceback=traceback , m1=function() table.insert(condtable.tags,"") end })
+
+
+			
+			
+			node = gui.new_box_node(vmath.vector3(programdata.width/2+xoff2+40*gscale,programdata.height+yoff2,0), vmath.vector3(40*gscale,40*gscale,0))
+			gui.set_pivot(node, gui.PIVOT_NW)
+			gui.set_texture(node, "srcimg")
+			gui.play_flipbook(node, "bool")
+			table.insert(guicomponents, {node=node , action="newbool", traceback=traceback,m1=function() table.insert(condtable.tags,{type="and",tags={""}}) end})
+			--xoff2=xoff2-40*gscale
+			yoff2=yoff2-40*gscale
+
+		end
+		yoff2=yoff2+40*gscale
+		xoff2=5+0*gscale
+		processconditionals(impl.checks,0,{implindex,"checks"})
+
+
+
+
+
+
+
+
+
+
+
+		
+		yoff = math.min(yoff1,yoff2) --pick the biggest. smallest actually, because negatives
+
+
+		--remove button
+		node = gui.new_box_node(vmath.vector3(xoff,programdata.height+yoff,0), vmath.vector3(40*gscale,40*gscale,0))
+		gui.set_texture(node, "srcimg")
+		gui.play_flipbook(node, "rem")
+		gui.set_pivot(node, gui.PIVOT_NW)
+		table.insert(guicomponents, {node=node , action="removeimplication" , torem=implindex })
+		yoff=yoff-40*gscale
+		
+		node = gui.new_box_node(vmath.vector3(programdata.width/2,programdata.height+yoff,0), vmath.vector3(programdata.width,5*gscale,0))
+		table.insert(guicomponents, {node=node})
+		yoff=yoff-5*gscale
+	end
+	
+	
+	node = gui.new_box_node(vmath.vector3(xoff,programdata.height+yoff,0), vmath.vector3(40*gscale,40*gscale,0))
+	gui.set_texture(node, "srcimg")
+	gui.play_flipbook(node, "add")
+	gui.set_pivot(node, gui.PIVOT_NW)
+	table.insert(guicomponents, {node=node , action="addnewimplication" })
+
+	
+	
+
+
+
+
+
+
+
+
+
+
+	
+	if autofill.enabled then
+		newttable={} -- first get the tags in order
+		for i,v in pairs(programdata.tagcount) do
+			local added
+			for i2,v2 in pairs(newttable) do
+				if programdata.tagcount[v2]<v then
+					table.insert(newttable, i2 , i)
+					added=true
+					break
+				end
+			end
+			if not added then table.insert(newttable, i) end
+		end
+		
+		local yoff=0
+		for _,tag in pairs(newttable) do
+			if not tag:search(tempstring) then goto next end
+			if yoff+autofill.y < 0 then break end --end if offscreen to save resources
+
+			local tc = gettagcolor(tag)
+			
+			
+			
+			node = gui.new_box_node(vmath.vector3(autofill.x+xoff,yoff+autofill.y,0), vmath.vector3(200*gscale,15*gscale,0))
+			gui.set_pivot(node, gui.PIVOT_NW)
+			gui.set_color(node, vmath.vector3(.2,.2,.2))
+			gui.set_color(node, vmath.vector3(tc.b[1],tc.b[2],tc.b[3]))
+			table.insert(guicomponents, {node=node , action="settemptext" ,to=tag })
+
+			node = gui.new_text_node(vmath.vector3(autofill.x+xoff,yoff+autofill.y,0), programdata.tagcount[tag].." "..tag )
+			gui.set_pivot(node, gui.PIVOT_NW)
+			gui.set_color(node, vmath.vector3(1,1,1))
+			gui.set_color(node, vmath.vector3(tc.t[1],tc.t[2],tc.t[3]))
+			table.insert(guicomponents, {node=node})
+			yoff=yoff-20		
+			::next::
+		end		
+
+		
+	end
+
+
+	
+	
+end
+
+function on_message(self, message_id, message, sender)
+end
+
+function on_input(self, action_id, action)
+
+	if  programdata.screen~="implications" then return end
+	if programdata.sidebar then return end
+
+
+	if action_id ==hash"m1"  and action.pressed then
+		local textnocancel
+		for _,v in pairs(guicomponents) do
+
+			if gui.pick_node(v.node, action.x, action.y) then
+
+				if v.action =="addnewimplication" then
+				table.insert(config.implications, {checks={type="and",tags={}}, ["true"]={} , ["false"]={}  }   )
+				
+				writeconfigfile()
+				print("saved config file")
+				elseif v.action=="removeimplication" then
+					table.remove(config.implications,v.torem)
+					writeconfigfile()
+					print("saved config file")
+				elseif v.action=="addnewtag" then
+					table.insert(config.implications[v.implication][v.towhich], {tag="",change="add"} )
+					writeconfigfile()
+					print("saved config file")
+				elseif v.action=="removetag" then
+
+					table.remove(config.implications[v.implication][v.towhich]    ,v.tag)
+					writeconfigfile()
+					print("saved config file")
+					
+				elseif v.action =="swaptagmode" then
+
+					if config.implications[v.implication][v.towhich][v.tag].change=="add" then
+						config.implications[v.implication][v.towhich][v.tag].change="sub"
+					else
+						config.implications[v.implication][v.towhich][v.tag].change="add"
+					end
+					writeconfigfile()
+					print("saved config file")
+					
+				elseif v.action =="activatetexttag" then --AAAAAAAAAAAAAAAAAAAAAAAAA. this is gonna suck
+
+					if not editmode then
+						tempstring=config.implications[v.implication][v.towhich][v.tag].tag or ""
+						editmode="tag"
+						editpath={ v.implication ,  v.towhich , v.tag   }
+						textnocancel=true
+					elseif editmode=="tag" then
+						if editpath[1]==v.implication and editpath[2]==v.towhich and editpath[3]==v.tag then
+							textnocancel=true
+						end
+					end
+				elseif v.action=="settemptext" then
+					tempstring=v.to
+				elseif v.action=="newbool" then
+					v.m1()
+				
+
+				elseif v.action=="newtagtobool" then
+					v.m1()
+				elseif v.action=="cycleboolean" then
+					v.m1()
+				elseif v.action=="activatetextcond" then
+
+
+					
+					if table.equalto(editx, v.traceback) then
+						textnocancel=true
+					end
+
+					if not editmode then 
+						v.m1()
+
+						editpath = v.traceback
+						textnocancel=true
+
+					end
+					
+					
+					
+				end
+			
+			end	
+
+
+		end
+		if not textnocancel then
+			if editmode=="tag" then
+				config.implications[editpath[1]][editpath[2]][editpath[3]].tag = tempstring
+			elseif editmode=="bool" then
+				editfunc()
+			end
+			tempstring=""
+			editmode=nil
+			editx,edity=nil,nil
+			editpath=nil
+			writeconfigfile()
+			print("saved config file")
+		end
+	end
+
+
+	
+	if action_id ==hash"text" then
+		if editmode then tempstring=(tempstring or "")..action.text:lower() end
+	end
+	if action_id ==hash"delete" and (action.pressed or action.repeated) then
+		if editmode then tempstring=(tempstring or ""):sub(1,#tempstring-1) end
+		
+	end
+
+	
+	if action_id ==hash"m2"  and action.pressed then
+		for _,v in pairs(guicomponents) do
+
+			if gui.pick_node(v.node, action.x, action.y) then
+				if v.action=="newbool" then
+					--v.m2()
+				elseif v.action=="activatetextcond" then
+						
+					v.m2()
+				elseif v.action=="cycleboolean" then
+					v.m2()
+				elseif v.action=="activatetexttag" then
+					config.implications[v.implication][v.towhich][v.tag]=nil
+				end
+			end
+
+		end
+	end
+	
+	if action_id==hash"mwu" then
+		if not programdata.shift then
+			scroll=	math.max(0,scroll -delta*config.scrollsen*programdata.height)
+		else
+			hscroll=math.min(0,hscroll +delta*config.scrollsen*programdata.width)
+		end
+	
+	end
+
+	if action_id==hash"mwd" then
+		if not programdata.shift then
+			scroll=	scroll +delta*config.scrollsen*programdata.height
+		else
+			hscroll=hscroll -delta*config.scrollsen*programdata.width
+		end
+	end
+
+	if action_id==hash"tab" then
+		writeconfigfile()
+		print("saved config file")
+	end
+	
+end

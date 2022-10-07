@@ -89,7 +89,7 @@ table.tostring = function(tab,keepkeys, humanreadable , rlevel) --converts a tab
 			print("aa")
 		end	
 
-		if n~=#tab then textout=textout.."," end
+		if n~=#tab or true then textout=textout.."," end --bypass. always do this. ALWAYS! or else shit gets fucked, mate.
 		if humanreadable and n<#tab then textout=textout.."\n" end
 	end
 	textout=textout.."}"
@@ -126,6 +126,84 @@ return out
 end
 
 
+function has(s,t) --if a has b
+	if type(s)=="number" then s=tostring(s) end --convert numbers to strings
+	if type(t)=="number" then t=tostring(t) end 
+	if type(s)=="string" then --if source is string value
+		if type(t)=="string" then --and the target is string, do a find operation
+			if s:search(t) then return true end
+		end
+	elseif type(s)=="table" then --if it's a table
+	for i,v in pairs(s) do --iterate through and find matches
+		if v==t then return i end
+	end
+end
+return false
+end
+string.has=has
+function isin(t,s) --if a is in b. (or b has a)
+	if type(s)=="number" then s=tostring(s) end --convert numbers to strings
+	if type(t)=="number" then t=tostring(t) end 
+	if type(s)=="string" then --if source is string value
+		if type(t)=="string" then --and the target is string, do a find operation
+			if s:search(t) then return true end
+		end
+	elseif type(s)=="table" then --if it's a table
+	for i,v in pairs(s) do --iterate through and find matches
+		if v==t then return i end
+	end
+end
+return false
+end
+string.isin=isin
+
+
+
+
+function table.equalto(tabA,tabB) --because doing == isn't actually ==
+if not tabA or not tabB then return false end
+for i,v in pairs(tabA or {}) do
+	if type(v)=="table" and type(tabB[i])=="table" then
+		if not table.equalto(v,tabB[i]) then return false end
+	elseif tabB[i]~=v then 
+		return false 
+	end
+end
+
+for i,v in pairs(tabB or {}) do
+	if type(v)=="table" and type(tabA[i])=="table" then
+		if not table.equalto(v,tabA[i]) then return false end
+	elseif tabA[i]~=v then 
+		return false 
+	end
+end
+
+return true
+end
+
+
+
+function table.copy(t)
+local out={}
+
+for i,v in pairs(t) do
+	if type(v)=="table" then
+		out[i]=table.copy(v)
+	else
+		out[i]=v
+	end
+end
+
+return out
+end
+
+
+
+
+
+
+
+
 function writeconfigfile() --does what you think.
 	local cftext = "config="..table.tostring(config , true,true)
 	local f=io.open("config","w")
@@ -135,7 +213,8 @@ function writeconfigfile() --does what you think.
 end
 
 makedir("images") --make required folders.
-makedir("tags") 
+makedir("tags")
+makedir("copied") 
 
 
 
@@ -163,7 +242,16 @@ function reload() --refreshes all images, tags, ect
 	filters={}
 	
 	local _,e = pcall(function() dofile("config") end)
-	if e then config={} print("ERROR WHEN IMPORTING CONFIG FILE!!:\t"..e) end --again, idiot-proof the code if someone messes with it, or my code sucks.
+	if e then
+		config={} print("ERROR WHEN IMPORTING CONFIG FILE!!:\t"..e) 
+		local ff=io.open("config","rb")
+		local fff=io.open("_oldconfig","w")
+		if ff then
+		fff:write(ff:read("*all"))
+		ff:close()
+		fff:close()
+		end
+	end --again, idiot-proof the code if someone messes with it, or my code sucks.
 
 	config.tagindexchar=config.tagindexchar or ":" --tag seperators ie    year:2022
 	config.imagesperrow=	config.imagesperrow or 4 --images per row in the gallery view
@@ -173,7 +261,8 @@ function reload() --refreshes all images, tags, ect
 	config.tagcolors=config.tagcolors or {}
 	config.defaulttagcolors=config.defaulttagcolors or {t={1,1,1} , b={.1,.1,.1} }
 	config.loadnum=config.loadnum or 10
-	
+	config.implications=config.implications or {}
+	config.keepimagesloaded=config.keepimagesloaded or false
 	local imagestor= getfiles("images")
 	for _,v in pairs(imagestor) do
 		if not ( v:sub(#v-3 ,#v  ):lower()==".png" or v:sub(#v-3 ,#v  ):lower()==".jpg" or v:sub(#v-4 ,#v  ):lower()==".jpeg"  ) then goto next end
@@ -211,7 +300,7 @@ function reload() --refreshes all images, tags, ect
 	programdata.tagscroll=0
 	programdata.filterscroll=0
 	programdata.screen="gallery"
-	programdata.screenorder={  "gallery" , "image" , "settings" , "tags"  }
+	programdata.screenorder={  "gallery" , "image" , "settings" ,"implications", "tags"  }
 	programdata.debounce=true
 	programdata.fullimagemode=false
 	programdata.imgxs=0 -- scrolling for the full image view

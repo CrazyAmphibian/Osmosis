@@ -1,4 +1,4 @@
-script: "/main/tags.gui_script"
+script: "/main/implications.gui_script"
 fonts {
   name: "system_font"
   font: "/builtins/fonts/system_font.font"
@@ -6,10 +6,6 @@ fonts {
 fonts {
   name: "sysdouble"
   font: "/main/sysdouble.font"
-}
-fonts {
-  name: "sysoneandhalf"
-  font: "/main/sysoneandhalf.font"
 }
 textures {
   name: "srcimg"
@@ -23,4 +19,4 @@ background_color {
 }
 material: "/builtins/materials/gui.material"
 adjust_reference: ADJUST_REFERENCE_DISABLED
-max_nodes: 1024
+max_nodes: 2048

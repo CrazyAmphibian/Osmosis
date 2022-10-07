@@ -47,6 +47,11 @@ controls:
 		right click: remove tag
 		scroll: scroll up/down
 		scroll+shift: scroll left/right
+	implications view:
+		right click: remove tag
+		right click: negate boolean
+		left click: cycle boolean
+		scroll: scroll up/down
 
 
 "boolean filters":
@@ -67,12 +72,27 @@ controls:
 	to remove a boolean filter, remove all of its paired tags, and it will automatically delete.
 
 
+"implications" view
+	rather than using a standard tag implication system, Osmosis uses its powerful "boolean filters" to pair tags together.
+	weather it be a simple A implies B, or a more complicated check, tags will be paired flawlessly. 
+	to use the implications screen, it is recomended to fist be familiar with the "boolean filter" system
+	not only can implications add tags, it can also remove them, too.
+
+	operating implications:
+		each implication has two sets, TRUE and FALSE. the former will fire when the boolean filter condition is true, and fires FALSE if it is not
+		clicking on the "add:" part of a tag on the left collum will change it to "sub:", meaning it will remove the tag instead of adding.
+		don't worry about tags that are already there or don't exist - the program will not be bothered by it.
+		the implications are only ran once you are no longer on the page, so you can take your time to make sure it is correct.
+
 
 supported platforms:
 	windows: tested to work on 64-bit windows 10, but should work on earlier versions and 32 bit as well.
 	linux: tested on 64-bit Ubuntu, but should work on other distros.
 	MacOS: does not work, and is not likley able to for lack of hardware to test it on. (feel free to try (main script: OS-specific functions))
 
+building:
+	building the program from source is very easy. simply download the source code, then open it into the defold code editor (opening the game.project with it.). once opened, go to the top bar to Project->Bundle, then chose the right platform for your system.
+	if you do not wish to manually build, executables are released when there is a significant feature disparity
 
 known issues/notes:
 	images are loaded/unloaded into memory as needed, and may cause stutter when scrolling
@@ -80,17 +100,25 @@ known issues/notes:
 	images are not initialized at startup (too long), and may result in flashes of color when scrolling quickly when program has just started
 		- again, no good solution. you can increase "image loading count" in settings to offset this.
 	some images fail to load ("invalid argument")
-		-thre is no solution, as diffrent setups don't always replicate this behavior. program has been hardened against this to prevent crashes.
+		-thre is no solution, as different setups don't always replicate this behavior. program has been hardened against this to prevent crashes.
 	Osmosis uses the Defold game engine. scripts are programmed in Lua. for documentation visit the respective links:
 		Lua: https://www.lua.org/docs.html
 		Defold: https://defold.com/ref/stable/buffer/
 
 todo:
-	add tag implications
-	add tag replacement
 
 
 changelog:
+	1.2
+		includes previous versions
+	1.1.3
+		added tag implication
+			accesable in a new menu with tab
+		added a double and 1.5 size font for less blurry visuals
+		added new option: keep images loaded
+			when enabled, this will stop images from being unloaded. this makes stuff faster at the cost of higher memory usage. much higher.
+		when a config fails to load it now creates a backup before removing
+		new copy images feature avalible in settings. new folder to go with it
 	1.1.2
 		improved click interaction with adding tags on an image
 		tags are now sorted by count when adding them
@@ -106,7 +134,7 @@ changelog:
 		fixed bug caused by 1.0.4 involving full image view swapping.
 
 	1.0.4
-		no longer continuosuly reloads image data on image view.
+		no longer continuously reloads image data on image view.
 		added safeguards for loading unloaded images.
 			seeking to fix in the future. happens because only being in gallery view loads image data.
 

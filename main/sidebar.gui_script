@@ -39,7 +39,8 @@ function update(self, dt)
 
 	elements["screentext"]= gui.new_text_node(vmath.vector3(    .1*config.guiscale*programdata.width   ,programdata.height - 50*config.guiscale  ,0), programdata.screen )
 	gui.set_pivot(elements.screentext, 1)
-	gui.set_scale(elements.screentext,  vmath.vector3(      config.guiscale * 1.5 , config.guiscale * 1.5 , config.guiscale * 1.5   ) )
+	gui.set_font(elements.screentext, "sysoneandhalf")
+	gui.set_scale(elements.screentext,  vmath.vector3(      config.guiscale  , config.guiscale  , config.guiscale   ) )
 
 
 
@@ -62,7 +63,7 @@ function update(self, dt)
 	gui.set_size(elements.back, vmath.vector3(  config.guiscale*200 , programdata.height,0) )
 	gui.set_position(elements.screenimg  ,   vmath.vector3(   100*config.guiscale  ,programdata.height,0) )
 	gui.set_position(elements.screentext  , vmath.vector3(100*config.guiscale   ,programdata.height - 50*config.guiscale  ,0) )
-	gui.set_scale(elements.screentext,  vmath.vector3(      config.guiscale * 1.5 , config.guiscale * 1.5 , config.guiscale * 1.5   ) )
+	gui.set_scale(elements.screentext,  vmath.vector3(      config.guiscale  , config.guiscale , config.guiscale    ) )
 	gui.play_flipbook(elements.screenimg,   programdata.screen  )
 
 	next=0

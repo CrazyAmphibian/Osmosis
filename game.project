@@ -15,6 +15,7 @@ input_method = HiddenInputField
 
 [project]
 title = Osmosis
+bundle_exclude_resources = 
 
 [label]
 max_count = 128

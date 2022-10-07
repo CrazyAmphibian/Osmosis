@@ -110,7 +110,7 @@ function update(self, dt)
 		gui.set_texture(imageobjects[i], i)
 	
 	else
-		if textures[i] then  gui.delete_texture(i) end
+		if textures[i] and not config.keepimagesloaded  then  gui.delete_texture(i) end
 		textures[i]=false
 	end
 
