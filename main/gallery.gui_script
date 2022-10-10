@@ -111,8 +111,8 @@ function update(self, dt)
 			end
 				local _,err = pcall( function() gui.set_texture(imageobjects[i], i)  end)
 				if err then --[[textures[i]=nil]] print(err ) end
-				local p=0
-				for i,v in pairs(textures) do p=p+1 end print(p)
+				--local p=0
+				--for i,v in pairs(textures) do p=p+1 end --print(p)
 			
 		else
 				

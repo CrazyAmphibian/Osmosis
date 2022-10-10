@@ -115,6 +115,9 @@ function update(self, dt)
 	for implindex,impl in pairs(config.implications or {}) do
 		yoff1,yoff2 = yoff,yoff --used for the split-collum approach
 		xoff1,xoff2 = xoff,xoff
+
+
+		if config.hideimplications[implindex] then goto nodraw end
 		
 		--if true (passed)
 		node = gui.new_text_node(vmath.vector3(xoff1,programdata.height+yoff1,0), "IF TRUE")
@@ -127,6 +130,11 @@ function update(self, dt)
 		--xoff1=xoff1+40*gscale
 		
 		for i,v in pairs(impl["true"]) do	
+
+
+			
+
+			
 			local tc=gettagcolor(v.tag)
 
 
@@ -366,7 +374,7 @@ function update(self, dt)
 
 
 
-
+		::nodraw::
 
 
 
@@ -384,6 +392,17 @@ function update(self, dt)
 		gui.play_flipbook(node, "rem")
 		gui.set_pivot(node, gui.PIVOT_NW)
 		table.insert(guicomponents, {node=node , action="removeimplication" , torem=implindex })
+		--show/hide button
+		node = gui.new_box_node(vmath.vector3(xoff+40*gscale,programdata.height+yoff,0), vmath.vector3(40*gscale,40*gscale,0))
+		gui.set_texture(node, "srcimg")
+		if not config.hideimplications[implindex] then
+			gui.play_flipbook(node, "collapse")
+		else
+			gui.play_flipbook(node, "expand")
+		end
+		gui.set_pivot(node, gui.PIVOT_NW)
+		table.insert(guicomponents, {node=node , action="hideimpl" , torem=implindex })
+		
 		yoff=yoff-40*gscale
 		
 		node = gui.new_box_node(vmath.vector3(programdata.width/2,programdata.height+yoff,0), vmath.vector3(programdata.width,5*gscale,0))
@@ -399,15 +418,6 @@ function update(self, dt)
 	table.insert(guicomponents, {node=node , action="addnewimplication" })
 
 	
-	
-
-
-
-
-
-
-
-
 
 
 	
@@ -479,6 +489,7 @@ function on_input(self, action_id, action)
 				print("saved config file")
 				elseif v.action=="removeimplication" then
 					table.remove(config.implications,v.torem)
+					table.remove(config.hideimplications, v.torem)
 					writeconfigfile()
 					print("saved config file")
 				elseif v.action=="addnewtag" then
@@ -523,15 +534,18 @@ function on_input(self, action_id, action)
 					v.m1()
 				elseif v.action=="cycleboolean" then
 					v.m1()
+				elseif v.action=="hideimpl" then
+					config.hideimplications[v.torem] = not config.hideimplications[v.torem]
+					writeconfigfile()
 				elseif v.action=="activatetextcond" then
 
 
-					
-					if table.equalto(editx, v.traceback) then
+	
+					if table.equalto(editx, v.traceback) then --if it's the same node, do nothing
 						textnocancel=true
 					end
 
-					if not editmode then 
+					if not editmode then --if not editing, start it
 						v.m1()
 
 						editpath = v.traceback
@@ -585,7 +599,7 @@ function on_input(self, action_id, action)
 				elseif v.action=="cycleboolean" then
 					v.m2()
 				elseif v.action=="activatetexttag" then
-					config.implications[v.implication][v.towhich][v.tag]=nil
+					table.remove(config.implications[v.implication][v.towhich] ,v.tag)
 				end
 			end
 

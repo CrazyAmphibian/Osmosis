@@ -263,6 +263,7 @@ function reload() --refreshes all images, tags, ect
 	config.loadnum=config.loadnum or 10
 	config.implications=config.implications or {}
 	config.keepimagesloaded=config.keepimagesloaded or false
+	config.hideimplications={}
 	local imagestor= getfiles("images")
 	for _,v in pairs(imagestor) do
 		if not ( v:sub(#v-3 ,#v  ):lower()==".png" or v:sub(#v-3 ,#v  ):lower()==".jpg" or v:sub(#v-4 ,#v  ):lower()==".jpeg"  ) then goto next end

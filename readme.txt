@@ -109,6 +109,11 @@ todo:
 
 
 changelog:
+	1.2.3
+		fixed tags sometimes not applying, probably
+		improved click detection
+		implications screen tags should appear more consistently
+		implications can now be collapsed
 	1.2.2
 		probably fixed the >128 images issue, i hope
 	1.2.1
