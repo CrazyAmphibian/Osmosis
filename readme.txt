@@ -109,8 +109,10 @@ todo:
 
 
 changelog:
+	1.2.4
+		fixed tags not applying with the autofill boxes when the inputed text matches an existing tag
 	1.2.3
-		fixed tags sometimes not applying, probably
+		did not fix tags sometimes not applying
 		improved click detection
 		implications screen tags should appear more consistently
 		implications can now be collapsed

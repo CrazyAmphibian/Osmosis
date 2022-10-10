@@ -14,7 +14,7 @@ if nosave then goto force end
 		if editstring==to then return end
 
 		if editstring=="\raddtag" then
-			if tempstring ~="" and allowsubmit then  
+			if tempstring ~="" and not tempstring:isnin(tags[programdata.selectedimage]) then  
 				table.insert(tags[programdata.selectedimage], tempstring)
 				writetag(programdata.selectedimage , tags[programdata.selectedimage])
 				print("added tag "..tempstring.." to image "..programdata.selectedimage)
@@ -268,7 +268,7 @@ function on_input(self, action_id, action)
 	
 	if not programdata.sidebar and action.pressed then
 		if action_id == hash"mwu" then
-			if action.screen_x <= config.guiscale*150 and programdata.tagscroll >0 and not programdata.fullimagemode then
+			if action.x <= config.guiscale*150 and programdata.tagscroll >0 and not programdata.fullimagemode then
 				programdata.tagscroll=programdata.tagscroll-delta*config.scrollsen*2*config.guiscale*programdata.height
 				--print(delta)
 			elseif programdata.fullimagemode then
@@ -285,7 +285,7 @@ function on_input(self, action_id, action)
 			end
 			
 		elseif action_id==hash"mwd" then
-			if action.screen_x <= config.guiscale*150 and not programdata.fullimagemode then
+			if action.x <= config.guiscale*150 and not programdata.fullimagemode then
 				programdata.tagscroll=programdata.tagscroll+delta*2*config.scrollsen*config.guiscale*programdata.height
 			elseif programdata.fullimagemode then
 				if programdata.shift then
@@ -301,7 +301,7 @@ function on_input(self, action_id, action)
 
 		elseif action_id==hash"m1" then
 			
-			if action.screen_x <= config.guiscale*150 and action.screen_y >= programdata.height-config.guiscale*80 then
+			if gui.pick_node(imageobjects["entrybox"], action.x, action.y) then --action.x <= config.guiscale*150 and action.y >= programdata.height-config.guiscale*80 then   
 				if not editstring then
 					transfer("\raddtag")
 				else
@@ -310,9 +310,9 @@ function on_input(self, action_id, action)
 			elseif  editstring=="\raddtag"  then
 				local match
 				for i in pairs(imageobjects) do
+						--if gui.pick_node(imageobjects[i], action.x, action.y) then print(i , gui.pick_node(imageobjects[i], action.x, action.y)) end
 					if i:sub(1,2)~="b\r" then goto next end
-					local pos , siz = gui.get_position(imageobjects[i]) , gui.get_size(imageobjects[i])
-					if  action.screen_x >= pos.x and action.screen_x<= pos.x+siz.x and action.screen_y<=pos.y and action.screen_y>=pos.y-siz.y then
+					if gui.pick_node(imageobjects[i], action.x, action.y) then
 						match=i   break end
 					::next::
 				end
@@ -325,9 +325,9 @@ function on_input(self, action_id, action)
 					tempstring=""
 					transfer(nil)
 				end
-			elseif action.screen_x >= config.guiscale*150 and not programdata.fullimagemode then --swap when clicked
+			elseif action.x >= config.guiscale*150 and not programdata.fullimagemode then --swap when clicked
 				local ims , ips = gui.get_size(imageobjects["image"]) , gui.get_position(imageobjects["image"])
-					if action.screen_x >= ips.x and action.screen_x <= ips.x + ims.x and action.screen_y <= ips.y and action.screen_y >= ips.y-ims.y then
+				if gui.pick_node(imageobjects["image"], action.x, action.y) then 
 						transfer(nil)
 						programdata.fullimagemode=true
 					end
@@ -343,7 +343,7 @@ function on_input(self, action_id, action)
 				if i:sub(1,2)~="b\r" then goto next end
 
 				local pos , siz = gui.get_position(imageobjects[i]) , gui.get_size(imageobjects[i])
-				if  action.screen_x >= pos.x and action.screen_x<= pos.x+siz.x and action.screen_y<=pos.y and action.screen_y>=pos.y-siz.y then
+				if  gui.pick_node(imageobjects[i], action.x, action.y) then 
 					match=i   break end
 					::next::
 				end
