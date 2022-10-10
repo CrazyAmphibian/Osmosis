@@ -14,7 +14,7 @@ if nosave then goto force end
 		if editstring==to then return end
 
 		if editstring=="\raddtag" then
-			if tempstring ~="" and not tempstring:isnin(tags[programdata.selectedimage]) then  
+			if tempstring ~="" and not tempstring:isin(tags[programdata.selectedimage]) then  
 				table.insert(tags[programdata.selectedimage], tempstring)
 				writetag(programdata.selectedimage , tags[programdata.selectedimage])
 				print("added tag "..tempstring.." to image "..programdata.selectedimage)
