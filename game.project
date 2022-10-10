@@ -16,10 +16,14 @@ input_method = HiddenInputField
 [project]
 title = Osmosis
 bundle_exclude_resources = 
+version = 1.2.5
 
 [label]
 max_count = 128
 
 [graphics]
 max_draw_calls = 2048
+
+[input]
+repeat_interval = 0.1
 

@@ -43,6 +43,7 @@ function update(self, dt)
 			local im =  image.load( td)  
 			images[i] = {  width=im.width , height=im.height , data=td } --only keeping part of this in memory, preserve RAM, unlike last time, dipshit. the size is needed for spacing.
 			f:close()
+			if config.keepimagesloaded  then fullimagedata[i]=im end
 			if countofimg>config.loadnum then break end
 		end
 	end
@@ -104,7 +105,8 @@ function update(self, dt)
 
 			
 			if not textures[i] then --bugged
-				local tex=image.load(images[i].data)  --image.load( f:read("*a")  )
+				local tex=fullimagedata[i] or image.load(images[i].data)  --image.load( f:read("*a")  )
+				if config.keepimagesloaded then fullimagedata[i]=tex end
 				gui.new_texture(i, tex.width, tex.height, tex.type, tex.buffer)  --only create texture if needed.
 				print("made texture")
 				textures[i]=true

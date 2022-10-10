@@ -586,7 +586,7 @@ function on_input(self, action_id, action)
 		
 	end
 
-	
+	local options={}
 	if action_id ==hash"m2"  and action.pressed then
 		for _,v in pairs(guicomponents) do
 
@@ -595,16 +595,22 @@ function on_input(self, action_id, action)
 					--v.m2()
 				elseif v.action=="activatetextcond" then
 						
-					v.m2()
+					options["r"]=v.m2
 				elseif v.action=="cycleboolean" then
 					v.m2()
 				elseif v.action=="activatetexttag" then
-					table.remove(config.implications[v.implication][v.towhich] ,v.tag)
+					
+					options["r"] = function() table.remove(config.implications[v.implication][v.towhich] ,v.tag) end
+				elseif v.action=="settemptext" then
+					options["s"] = function() tempstring=v.to end
 				end
 			end
 
 		end
 	end
+	
+	if options["s"] then options["s"]() elseif options["r"] then options["r"]() end
+	
 	
 	if action_id==hash"mwu" then
 		if not programdata.shift then

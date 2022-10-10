@@ -240,6 +240,7 @@ function reload() --refreshes all images, tags, ect
 	showing={}
 	tags={}
 	filters={}
+	fullimagedata={} --used for keeploaded
 	
 	local _,e = pcall(function() dofile("config") end)
 	if e then

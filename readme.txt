@@ -109,6 +109,15 @@ todo:
 
 
 changelog:
+	1.2.5
+		fixed error when trying to close full image view
+		pressing escape when in full image mode now returns you to regular view, not the gallery
+		right clicking a tag in the autofill will set the search text, while not setting the tag. this applies to all applicable screens.
+		new image view functionality:
+			holding shift while adding a tag makes the input string to longer clear on enter.
+			holding control when clicking an autofill tag will preserve the existing input text and still add the tag.
+		lowered keypress repeat interval, .2 -> .1
+		changed forced image loading so that it actuallly does something
 	1.2.4
 		fixed tags not applying with the autofill boxes when the inputed text matches an existing tag
 	1.2.3
