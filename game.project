@@ -27,3 +27,6 @@ max_draw_calls = 2048
 [input]
 repeat_interval = 0.1
 
+[profiler]
+track_cpu = 1
+

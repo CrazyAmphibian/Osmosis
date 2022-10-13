@@ -92,7 +92,8 @@ supported platforms:
 
 building:
 	building the program from source is very easy. simply download the source code, then open it into the defold code editor (opening the game.project with it.). once opened, go to the top bar to Project->Bundle, then chose the right platform for your system.
-	if you do not wish to manually build, executables are released when there is a significant feature disparity
+	choose either a debug or release build (debug recomended, has some exclusive features)
+	if you do not wish to manually build, executables are released when there is a significant feature disparity.
 
 known issues/notes:
 	images are loaded/unloaded into memory as needed, and may cause stutter when scrolling
@@ -109,6 +110,10 @@ todo:
 
 
 changelog:
+	1.2.6
+		fixed an error
+		added RAM+CUP use info to settings page (requires that you do a debug build)
+		fixed tag filter screen not removing empty booleans
 	1.2.5
 		fixed error when trying to close full image view
 		pressing escape when in full image mode now returns you to regular view, not the gallery

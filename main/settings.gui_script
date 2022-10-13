@@ -21,7 +21,17 @@ function update(self, dt)
 	if programdata.screen~="settings" then programdata.settingscroll=0 programdata.settingshorscroll=0 textdata={} goto skip end
 
 	local guiscale = config.guiscale
-	yoff=1 + programdata.settingscroll/(40*guiscale) --y offset, this time im gonna use it as a unit and not pixelcount.
+
+	yoff=0 + programdata.settingscroll/(40*guiscale) --y offset, this time im gonna use it as a unit and not pixelcount.
+	if profiler then
+	elems["\tdebug"]={}
+	elems["\tdebug"].gui = gui.new_text_node(vmath.vector3( 10*guiscale, programdata.height-(yoff*40*guiscale),0  ), "RAM: ".. math.floor(100*RAM/1000000000)/100 .."GB".."\tCPU:" ..  math.floor(CPU*1000)/1000 .."%" )
+	gui.set_pivot(elems["\tdebug"].gui , 8)--"RAM: ".. math.floor(100*profiler.get_memory_usage()/1000000000)/100 .."GB".."\tCPU:" .. math.floor(profiler.get_cpu_usage()*1000)/1000 .."%" )
+	gui.set_scale(elems["\tdebug"].gui, vmath.vector3(guiscale,guiscale,0))
+	end
+	yoff=yoff+1
+	
+
 	if not (yoff<=0) then 
 	elems["imgrowbg"]={}
 	elems["imgrowbg"].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*560 , guiscale*60 , 0    ))

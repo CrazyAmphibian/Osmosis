@@ -204,8 +204,36 @@ function update(self, dt)
 		end
 		
 	end
+
+
+
+
+	local function deleteemptytags(tab,protect)
+
+		if #tab.tags < 1 then return "rem" end
+		for i,v in pairs(tab.tags) do
+			if type(v)=="table" then 
+				res = deleteemptytags(tab.tags[i])
+				if res=="rem" then table.remove(tab.tags, i) end
+			end
+		end 
+	end
+	deleteemptytags(filters,true)
+
+
+
+
+
+
+
 	
 	::skip::
+
+
+
+
+
+	
 end
 
 function on_input(self, action_id, action)
@@ -236,7 +264,7 @@ function on_input(self, action_id, action)
 							elseif action_id==hash"m2" then
 						
 								if type(i)=="number" then --right clcik to remove a tag
-									queue["r"]=function() table.remove( filtacsesspoint , i ) end
+									queue["r"]=function() table.remove( filtacsesspoint , i ) 	 end
 								end
 							end
 							break
@@ -284,11 +312,11 @@ function on_input(self, action_id, action)
 							end		
 						end
 					end
-					
+					--[[
 					if filtacsesspoint.tags and  #filtacsesspoint.tags == 0 and not protected then
 						filtacsesspoint=nil
 					end
-
+					]]
 					
 					
 					
