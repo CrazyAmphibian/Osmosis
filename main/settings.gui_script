@@ -248,10 +248,34 @@ function update(self, dt)
 		elems["\tcopyshowinginfo"]={}
 		elems["\tcopyshowinginfo"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), "Copy showing images in the gallery to the 'copied' folder" )
 		gui.set_pivot(elems["\tcopyshowinginfo"].gui , 8)
-		gui.set_scale(elems["\tkeeploadinfo"].gui, vmath.vector3(guiscale,guiscale,0))
+		gui.set_scale(elems["\tcopyshowinginfo"].gui, vmath.vector3(guiscale,guiscale,0))
 		
 	end
 
+	
+	if not (yoff<=0) then 
+		yoff=yoff+1
+		elems["copyselectedbg"]={}
+		elems["copyselectedbg"].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*560 , guiscale*60 , 0    ))
+		elems["copyselectedbg"].binding="copyselected"
+		elems["copyselectedbg"].operation="copyselected"
+		gui.set_pivot(elems["copyselectedbg"].gui , 8)
+		gui.set_color(elems["copyselectedbg"].gui , vmath.vector3(.1,.1,.1))
+
+		elems["\tcopyselected"]={}
+		elems["\tcopyselected"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), "[Copy Selected Image]") 
+		gui.set_pivot(elems["\tcopyselected"].gui , 8)
+		gui.set_font(elems["\tcopyselected"].gui, "sysdouble")
+		gui.set_scale(elems["\tcopyselected"].gui, vmath.vector3(guiscale,guiscale,0))
+
+
+		yoff=yoff+1
+		elems["\tcopyselectedinfo"]={}
+		elems["\tcopyselectedinfo"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), "Copy the currently selected image in image view" )
+		gui.set_pivot(elems["\tcopyselectedinfo"].gui , 8)
+		gui.set_scale(elems["\tcopyselectedinfo"].gui, vmath.vector3(guiscale,guiscale,0))
+
+	end
 
 	
 	
@@ -487,17 +511,24 @@ function on_input(self, action_id, action)
 							if v then
 								local s = io.open("images/"..i,"rb")
 								local t = io.open("copied/"..i,"w")
-
 								if s and t then
 									t:write(s:read("*all"))
 									t:close()
 									s:close()
 								end
-								
 							end
-							
 						end
-						
+					elseif v.operation=="copyselected" then
+						if programdata.selectedimage then
+							i=programdata.selectedimage --lazy copy paste FTW!
+							local s = io.open("images/"..i,"rb")
+							local t = io.open("copied/"..i,"w")
+							if s and t then
+								t:write(s:read("*all"))
+								t:close()
+								s:close()
+							end
+						end
 					end
 				elseif not v.binding3 then
 					if v.operation=="add" then

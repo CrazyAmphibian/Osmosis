@@ -110,6 +110,12 @@ todo:
 
 
 changelog:
+	1.2.7
+		fixed implications not staying hidden when restarting the program
+		implications are no longer removable while hidden
+			this is to prevent accidental removal
+		added ability to copy the currently selected image into the copied folder
+			found in the settings menu
 	1.2.6
 		fixed an error
 		added RAM+CUP use info to settings page (requires that you do a debug build)

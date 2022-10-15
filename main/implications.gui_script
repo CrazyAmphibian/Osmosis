@@ -391,7 +391,14 @@ function update(self, dt)
 		gui.set_texture(node, "srcimg")
 		gui.play_flipbook(node, "rem")
 		gui.set_pivot(node, gui.PIVOT_NW)
-		table.insert(guicomponents, {node=node , action="removeimplication" , torem=implindex })
+
+		if not config.hideimplications[implindex] then --prevent removal if hidden.
+			table.insert(guicomponents, {node=node , action="removeimplication" , torem=implindex })
+		else
+			gui.set_color(node, vmath.vector3(.5,.5,.5))
+			table.insert(guicomponents, {node=node})
+		end
+		
 		--show/hide button
 		node = gui.new_box_node(vmath.vector3(xoff+40*gscale,programdata.height+yoff,0), vmath.vector3(40*gscale,40*gscale,0))
 		gui.set_texture(node, "srcimg")
