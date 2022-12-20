@@ -245,7 +245,13 @@ function update(self, dt)
 		imageobjects["hscrollback"]=gui.new_box_node(vmath.vector3(0,0,0), vmath.vector3(harea,config.guiscale*15,0))
 		gui.set_pivot(imageobjects["hscrollback"], gui.PIVOT_SW)
 		gui.set_color(imageobjects["hscrollback"], vmath.vector3(.25,.25,.25))
-		local hp=programdata.imgxs/(images[programdata.selectedimage].width-xmargins)
+		local hp=0
+		
+		hp=programdata.width/2-programdata.imgxs*programdata.imgz+images[programdata.selectedimage].width*programdata.imgz/2 --pos of right side
+		hp=hp/(programdata.width+images[programdata.selectedimage].width*programdata.imgz)
+		hp=-((hp*2)-1)
+	--	print(hp)
+		
 		imageobjects["hscroll"]=gui.new_box_node(vmath.vector3( harea*(hp+1)/2,0,0), vmath.vector3(config.guiscale*15*4,config.guiscale*15,0) )
 		gui.set_pivot(imageobjects["hscroll"], gui.PIVOT_S)
 		gui.set_color(imageobjects["hscroll"], vmath.vector3(.75,.75,.75))
@@ -255,7 +261,12 @@ function update(self, dt)
 		gui.set_pivot(imageobjects["vscrollback"], gui.PIVOT_NE)
 		gui.set_color(imageobjects["vscrollback"], vmath.vector3(.25,.25,.25))
 
-		local vp=programdata.imgys/(images[programdata.selectedimage].height-ymargins)
+		local vp=0
+		vp=programdata.height/2-programdata.imgys*programdata.imgz+images[programdata.selectedimage].height*programdata.imgz/2 --pos of right side
+		vp=vp/(programdata.height+images[programdata.selectedimage].height*programdata.imgz)
+		vp=-((vp*2)-1)
+		--print(vp)
+		
 		imageobjects["vscroll"]=gui.new_box_node(vmath.vector3(programdata.width, varea*(vp+1)/2 ,0)  , vmath.vector3(config.guiscale*15,config.guiscale*15*4,0))
 		gui.set_pivot(imageobjects["vscroll"], gui.PIVOT_E)
 		gui.set_color(imageobjects["vscroll"], vmath.vector3(.75,.75,.75))
@@ -362,26 +373,33 @@ function on_input(self, action_id, action)
 				end
 			elseif action.x >= config.guiscale*150 and not programdata.fullimagemode and action.pressed then --swap when clicked
 --				local ims , ips = gui.get_size(imageobjects["image"]) , gui.get_position(imageobjects["image"])
-				if gui.pick_node(imageobjects["image"], action.x, action.y) then 
+				if gui.pick_node(imageobjects["image"], action.screen_x, action.screen_y) then 
 						transfer(nil)
 						programdata.fullimagemode=true
 					end
 				elseif programdata.fullimagemode then
 					if gui.pick_node(imageobjects["hscrollback"], action.x, action.y) then
-						local x=action.x
+						local x=action.screen_x
+						--print(action.x,action.screen_x)
 						x=x*programdata.width/(programdata.width-15*config.guiscale)
-						x=x/programdata.width
-						x=(x*2)-1
-						x=x*(images[programdata.selectedimage].width+(programdata.width-images[programdata.selectedimage].width))
+						x=x/programdata.width --now is 0 to 1
+						x=x*-1+1
+						--when 0: it has to be all the way to the right
+						x=(1-x)*(programdata.width/(2*programdata.imgz)+images[programdata.selectedimage].width/2)    -(x)*(images[programdata.selectedimage].width/2+programdata.width/(2*programdata.imgz))
+						--i cannot fathom why the application width is bieng divided by the zoom level. but it makes it work.
+						x=x
 						programdata.imgxs=x
-					
-					elseif gui.pick_node(imageobjects["vscrollback"], action.x, action.y) then
-						local y=action.y
+					elseif gui.pick_node(imageobjects["vscrollback"], action.screen_x, action.screen_y) then
+						local y=action.screen_y
+						--print(action.x,action.screen_x)
 						y=y*programdata.height/(programdata.height-15*config.guiscale)
-						y=y/programdata.height
-						y=(y*2)-1
-						y=y*(images[programdata.selectedimage].height+(programdata.height-images[programdata.selectedimage].height))
+						y=y/programdata.height --now is 0 to 1
+						y=y*-1+1
+						y=(1-y)*(programdata.height/(2*programdata.imgz)+images[programdata.selectedimage].height/2)    -(y)*(images[programdata.selectedimage].height/2+programdata.height/(2*programdata.imgz))
+	
+						y=y
 						programdata.imgys=y
+
 					elseif action.pressed then
 						programdata.fullimagemode=false
 					end

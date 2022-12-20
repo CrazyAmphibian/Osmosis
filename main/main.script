@@ -5,7 +5,7 @@
 	tags={}
 	filters={}
 
-
+local t=0
 	
 programdata.width , programdata.height = window.get_size()
 
@@ -489,6 +489,8 @@ end
 
 
 function update(self, dt)
+	t=t+dt
+	if t>20 then t=t-20 collectgarbage("collect") print("GC") end --hopefully saves some memory.
 	--delta=dt
 	filterimages()
 	

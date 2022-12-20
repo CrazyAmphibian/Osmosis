@@ -555,7 +555,7 @@ function on_input(self, action_id, action)
 				else
 					if v.operation=="add" then --yes, this is bad code. but it sure beats using loadsting(), i tihnk?
 						config[v.binding][v.binding2][v.binding3][v.binding4]=config[v.binding][v.binding2][v.binding3][v.binding4]+v.amount
-					elseif v.operation=="sub" then
+					elseif v.operation=="sub" then	
 						config[v.binding][v.binding2][v.binding3][v.binding4]=config[v.binding][v.binding2][v.binding3][v.binding4]-v.amount
 					end
 				end
@@ -593,7 +593,7 @@ function on_input(self, action_id, action)
 			config[td.binding][td.binding2][td.binding3]=config[td.binding][td.binding2][td.binding3]:sub(1,#config[td.binding][td.binding2][td.binding3] -1)
 			writeconfigfile()
 			print("saved config file")
-			end
+		end
 	end
 	
 	

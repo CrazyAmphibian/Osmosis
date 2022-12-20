@@ -110,6 +110,10 @@ todo:
 
 
 changelog:
+	1.2.9
+		made image view scroll bars more intuitive
+		bandaid solution for memory leaks
+			garbage collector will be ran every 20 seconds
 	1.2.8
 		images now use a seperate function to retrieve just their size. it is >10x faster.
 			your config image loading count can be increased a lot more with less performance impact.

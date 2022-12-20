@@ -87,7 +87,7 @@ function update(self, dt)
 
 		if visible then
 			
-			if (not imgdata.width) or (not imgdata.height) or hl then --alt image loading. hopefully works better as to not frontload it all.
+			if (not imgdata.width) or (not imgdata.height) then --alt image loading. hopefully works better as to not frontload it all.
 				--print(i)
 				local f=io.open("images/"..i ,"rb") --open in read binary mode, because windows sucks. 
 				local td = f:read("*a")
