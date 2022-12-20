@@ -40,10 +40,11 @@ function update(self, dt)
 			local f,e=io.open("images/"..i ,"rb") --open in read binary mode, because windows sucks. 
 			if not f then print("error reading file "..i.." removing from image pool." , e) images[i]=nil tags[i]=nil goto skip end
 			local td = f:read("*a")
-			local im =  image.load( td)  
-			images[i] = {  width=im.width , height=im.height , data=td } --only keeping part of this in memory, preserve RAM, unlike last time, dipshit. the size is needed for spacing.
+			--local im =  image.load( td)  
+			local im=hotloadimage(i)
+			images[i] = {  width=im.width , height=im.height , data=td ,hl=true } --only keeping part of this in memory, preserve RAM, unlike last time, dipshit. the size is needed for spacing.
 			f:close()
-			if config.keepimagesloaded  then fullimagedata[i]=im end
+			if config.keepimagesloaded and false  then fullimagedata[i]=im end
 			if countofimg>config.loadnum then break end
 		end
 	end
@@ -86,14 +87,15 @@ function update(self, dt)
 
 		if visible then
 			
-			if (not imgdata.width) or (not imgdata.height) then --alt image loading. hopefully works better as to not frontload it all.
+			if (not imgdata.width) or (not imgdata.height) or hl then --alt image loading. hopefully works better as to not frontload it all.
 				--print(i)
 				local f=io.open("images/"..i ,"rb") --open in read binary mode, because windows sucks. 
 				local td = f:read("*a")
 				local im =  image.load( td)  
-				images[i] = {  width=im.width , height=im.height , data=td } --only keeping part of this in memory, preserve RAM, unlike last time, dipshit. the size is needed for spacing.
+				images[i] = {  width=im.width , height=im.height , data=td, hl=false } --only keeping part of this in memory, preserve RAM, unlike last time, dipshit. the size is needed for spacing.
 				imgdata=images[i]
 				f:close()
+				if config.keepimagesloaded  then fullimagedata[i]=im end
 			end
 
 			

@@ -234,7 +234,34 @@ function update(self, dt)
 	if programdata.fullimagemode then
 		--imageobjects["image"]
 		gui.set_size(imageobjects["image"], vmath.vector3( images[programdata.selectedimage].width*programdata.imgz , images[programdata.selectedimage].height*programdata.imgz , 0  ))
-		gui.set_position(imageobjects["image"], vmath.vector3(programdata.imgxs ,programdata.height-programdata.imgys,0) )
+		gui.set_pivot(imageobjects["image"], gui.PIVOT_CENTER)
+		local xmargins=images[programdata.selectedimage].width-programdata.width 
+		local ymargins=images[programdata.selectedimage].height-programdata.height 
+	--	gui.set_position(imageobjects["image"], vmath.vector3(programdata.imgxs-xmargins/2 ,programdata.height-programdata.imgys+ymargins/2,0) )
+	gui.set_position(imageobjects["image"], vmath.vector3(programdata.width/2-programdata.imgxs*programdata.imgz,programdata.height/2 -programdata.imgys*programdata.imgz,0))
+	
+		--print(programdata.imgxs-images[programdata.selectedimage].width)
+		local harea=programdata.width-config.guiscale*15
+		imageobjects["hscrollback"]=gui.new_box_node(vmath.vector3(0,0,0), vmath.vector3(harea,config.guiscale*15,0))
+		gui.set_pivot(imageobjects["hscrollback"], gui.PIVOT_SW)
+		gui.set_color(imageobjects["hscrollback"], vmath.vector3(.25,.25,.25))
+		local hp=programdata.imgxs/(images[programdata.selectedimage].width-xmargins)
+		imageobjects["hscroll"]=gui.new_box_node(vmath.vector3( harea*(hp+1)/2,0,0), vmath.vector3(config.guiscale*15*4,config.guiscale*15,0) )
+		gui.set_pivot(imageobjects["hscroll"], gui.PIVOT_S)
+		gui.set_color(imageobjects["hscroll"], vmath.vector3(.75,.75,.75))
+
+		local varea=programdata.height-config.guiscale*15
+		imageobjects["vscrollback"]=gui.new_box_node(vmath.vector3(programdata.width,programdata.height,0), vmath.vector3(config.guiscale*15,varea,0))
+		gui.set_pivot(imageobjects["vscrollback"], gui.PIVOT_NE)
+		gui.set_color(imageobjects["vscrollback"], vmath.vector3(.25,.25,.25))
+
+		local vp=programdata.imgys/(images[programdata.selectedimage].height-ymargins)
+		imageobjects["vscroll"]=gui.new_box_node(vmath.vector3(programdata.width, varea*(vp+1)/2 ,0)  , vmath.vector3(config.guiscale*15,config.guiscale*15*4,0))
+		gui.set_pivot(imageobjects["vscroll"], gui.PIVOT_E)
+		gui.set_color(imageobjects["vscroll"], vmath.vector3(.75,.75,.75))
+	
+
+
 		
 	end
 	--print(dt)
@@ -262,15 +289,15 @@ function on_input(self, action_id, action)
 			editstring=nil
 			tempstring=""
 		elseif programdata.fullimagemode then
-			programdata.fullimagemode=false
+				programdata.fullimagemode=false
 		else
 			transfer(nil, true) programdata.screen="gallery" programdata.tagscroll=0
 		end
 	end
 
 	
-	if not programdata.sidebar and action.pressed then
-		if action_id == hash"mwu" then
+	if not programdata.sidebar  then
+		if action_id == hash"mwu" and action.pressed then
 			if action.x <= config.guiscale*150 and programdata.tagscroll >0 and not programdata.fullimagemode then
 				programdata.tagscroll=programdata.tagscroll-delta*config.scrollsen*2*config.guiscale*programdata.height
 				--print(delta)
@@ -278,39 +305,41 @@ function on_input(self, action_id, action)
 				if programdata.shift then
 					programdata.imgxs=programdata.imgxs-1*config.scrollsen*images[programdata.selectedimage].width*delta
 				elseif programdata.control then
+					local last=programdata.imgz
 					programdata.imgz=programdata.imgz*(1.05) --don't even try to add sensitivity changes. it's just a mess.
-					programdata.imgxs=programdata.imgxs - images[programdata.selectedimage].width*.025*programdata.imgz --keep the same position
-					programdata.imgys=programdata.imgys - images[programdata.selectedimage].height*.025*programdata.imgz --this funky equation took a bit to figure out...
+					--programdata.imgxs=programdata.imgxs *programdata.imgz/last --keep the same position
+					--programdata.imgys=programdata.imgys *programdata.imgz/last --this funky equation took a bit to figure out...
 					
 				else
 					programdata.imgys=programdata.imgys+1*config.scrollsen*images[programdata.selectedimage].height*delta
 				end
 			end
 			
-		elseif action_id==hash"mwd" then
+		elseif action_id==hash"mwd" and action.pressed then
 			if action.x <= config.guiscale*150 and not programdata.fullimagemode then
 				programdata.tagscroll=programdata.tagscroll+delta*2*config.scrollsen*config.guiscale*programdata.height
 			elseif programdata.fullimagemode then
 				if programdata.shift then
 					programdata.imgxs=programdata.imgxs+1*config.scrollsen*images[programdata.selectedimage].width*delta
 				elseif programdata.control then
+					local last=programdata.imgz
 					programdata.imgz=programdata.imgz/(1.05)
-					programdata.imgxs=programdata.imgxs + images[programdata.selectedimage].width*.025*programdata.imgz
-					programdata.imgys=programdata.imgys + images[programdata.selectedimage].height*.025*programdata.imgz
+				--	programdata.imgxs=programdata.imgxs *programdata.imgz/last
+				--	programdata.imgys=programdata.imgys *programdata.imgz/last 
 				else
 					programdata.imgys=programdata.imgys-1*config.scrollsen*images[programdata.selectedimage].height*delta
 				end
 			end
 
-		elseif action_id==hash"m1" then
+		elseif action_id==hash"m1"  then
 			
-			if imageobjects["entrybox"] and gui.pick_node(imageobjects["entrybox"], action.x, action.y) then --action.x <= config.guiscale*150 and action.y >= programdata.height-config.guiscale*80 then   
+			if imageobjects["entrybox"] and gui.pick_node(imageobjects["entrybox"], action.x, action.y) and action.pressed then --action.x <= config.guiscale*150 and action.y >= programdata.height-config.guiscale*80 then   
 				if not editstring then
 					transfer("\raddtag")
 				else
 					transfer(nil)
 				end
-			elseif  editstring=="\raddtag"  then
+			elseif  editstring=="\raddtag"  and action.pressed then
 				local match
 				for i in pairs(imageobjects) do
 						--if gui.pick_node(imageobjects[i], action.x, action.y) then print(i , gui.pick_node(imageobjects[i], action.x, action.y)) end
@@ -331,18 +360,36 @@ function on_input(self, action_id, action)
 					tempstring=""
 					transfer(nil)
 				end
-			elseif action.x >= config.guiscale*150 and not programdata.fullimagemode then --swap when clicked
+			elseif action.x >= config.guiscale*150 and not programdata.fullimagemode and action.pressed then --swap when clicked
 --				local ims , ips = gui.get_size(imageobjects["image"]) , gui.get_position(imageobjects["image"])
 				if gui.pick_node(imageobjects["image"], action.x, action.y) then 
 						transfer(nil)
 						programdata.fullimagemode=true
 					end
-			elseif programdata.fullimagemode then programdata.fullimagemode=false 
-			else
+				elseif programdata.fullimagemode then
+					if gui.pick_node(imageobjects["hscrollback"], action.x, action.y) then
+						local x=action.x
+						x=x*programdata.width/(programdata.width-15*config.guiscale)
+						x=x/programdata.width
+						x=(x*2)-1
+						x=x*(images[programdata.selectedimage].width+(programdata.width-images[programdata.selectedimage].width))
+						programdata.imgxs=x
+					
+					elseif gui.pick_node(imageobjects["vscrollback"], action.x, action.y) then
+						local y=action.y
+						y=y*programdata.height/(programdata.height-15*config.guiscale)
+						y=y/programdata.height
+						y=(y*2)-1
+						y=y*(images[programdata.selectedimage].height+(programdata.height-images[programdata.selectedimage].height))
+						programdata.imgys=y
+					elseif action.pressed then
+						programdata.fullimagemode=false
+					end
+			elseif action.pressed then
 				transfer(nil)
 			end
 			
-		elseif action_id==hash"m2" then
+		elseif action_id==hash"m2" and action.pressed then
 			local match
 			for i in pairs(imageobjects) do
 				--if editstring~=nil then break end
@@ -366,7 +413,7 @@ function on_input(self, action_id, action)
 				end
 
 			
-		elseif action_id==hash"enter" then 
+		elseif action_id==hash"enter" and action.pressed then 
 			transfer(nil)
 			transfer("\raddtag")
 		end

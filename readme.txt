@@ -110,6 +110,15 @@ todo:
 
 
 changelog:
+	1.2.8
+		images now use a seperate function to retrieve just their size. it is >10x faster.
+			your config image loading count can be increased a lot more with less performance impact.
+		image view is less janky with zooming and positioning
+		image view now has 2 scroll bars
+		implications view now uses a smaller font for the dynamic text to reduce screen usage
+		changed the way images are copied
+			now uses command line instead of IO library
+			should hopefully result in less corruption (issue#3)
 	1.2.7
 		fixed implications not staying hidden when restarting the program
 		implications are no longer removable while hidden

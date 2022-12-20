@@ -45,6 +45,22 @@ end
 
 
 
+function copyfile(source,target)
+	if OS=="Windows" then
+		source=source:gsub("/","\\") --for whatever reason windows has a bitch fit if you don't use backslashes.
+		target=target:gsub("/","\\")
+		local str="copy /y /v /b \""..source.."\" \""..target.."\""
+		os.execute(str)
+		print(str)
+	elseif OS=="Linux" then
+		local str="cp \""..source.."\" \""..target.."\""
+		os.execute(str)
+		print(str)
+	end
+end
+
+
+
 table.tostring = function(tab,keepkeys, humanreadable , rlevel) --converts a table to a string. keepkeys will keep numeric type keys. it will always keep string keys
 	if type(tab)~="table" then return tab end --only execute if its a table
 	local textout=""
@@ -233,6 +249,63 @@ function writetag(filename , data)
 end
 
 
+function string.tohex(str)
+	local out={}
+	for i=1,#str do
+		local ch=str:sub(i,i)
+		local bn=str:sub(i,i):byte()
+		local out2=str:sub(i,i):byte()
+		out2="0"..string.format("%X",out2)
+		out2=out2:sub(#out2 -1,#out2)
+		table.insert(out,out2)
+	end
+	return table.concat(out,"")	
+end
+
+
+function hotloadimage(image) --only returns image size and nothing else. about 10x+ faster than image.load, but does not load all pixel data.
+out={width=0,height=0}
+local f=io.open("images/"..image ,"rb")
+local rd=""
+if f then
+rd=f:read("*all")
+end
+rd=rd or ""
+
+--first, PNG test
+	if rd:sub(1,8)=="\137PNG\13\10\26\10" then --detection number
+		for i=9,#rd do
+			if rd:sub(i,i+3)=="IHDR" then --start of heading chunk
+				out.width=tonumber(rd:sub(i+4,i+7):tohex(),16) --next 4 bytes are width
+				out.height=tonumber(rd:sub(i+8,i+11):tohex(),16) --then height
+				return out
+			end
+		end
+	end
+	
+--JPEG is a bit harder
+	if rd:sub(1,3)=="\255\216\255" then--detection
+		for i=3,#rd do
+			if rd:sub(i,i)=="\255" and rd:sub(i+1,i+1):byte()>=192 and rd:sub(i+1,i+1):byte()<=207  then --0xff followed by 0xc0-0xcf, though only c0 and c2 are common.
+				local h=tonumber(rd:sub(i+5,i+6):tohex(),16)
+				local w=tonumber(rd:sub(i+7,i+8):tohex(),16)
+				if h>out.height and w>out.width then--sometimes there are multiple blocks. use the biggest, i think?
+					out.height=h out.width=w --only set both at a time because it messes up sometimes, suprise suprise.
+				end
+			end
+		end
+		return out
+	end
+
+
+
+	return image.load(rd) --fallback in case it fails.
+	
+	
+end
+
+
+
 function reload() --refreshes all images, tags, ect
 	config={}
 	images={}
@@ -269,6 +342,7 @@ function reload() --refreshes all images, tags, ect
 	for _,v in pairs(imagestor) do
 		if not ( v:sub(#v-3 ,#v  ):lower()==".png" or v:sub(#v-3 ,#v  ):lower()==".jpg" or v:sub(#v-4 ,#v  ):lower()==".jpeg"  ) then goto next end
 		images[v]={} 
+
 		if false then --extreme slowness to start up.
 			local f=io.open("images/"..v ,"rb") --open in read binary mode, because windows sucks. 
 			local td = f:read("*a")

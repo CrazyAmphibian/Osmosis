@@ -509,25 +509,31 @@ function on_input(self, action_id, action)
 					elseif v.operation=="copyshowing" then
 						for i,v in pairs(showing) do
 							if v then
+								--[[
 								local s = io.open("images/"..i,"rb")
 								local t = io.open("copied/"..i,"w")
 								if s and t then
 									t:write(s:read("*all"))
 									t:close()
 									s:close()
-								end
+								end]]
+								copyfile("images/"..i , "copied/"..i)
+								
 							end
 						end
 					elseif v.operation=="copyselected" then
 						if programdata.selectedimage then
 							i=programdata.selectedimage --lazy copy paste FTW!
+							--[[
 							local s = io.open("images/"..i,"rb")
 							local t = io.open("copied/"..i,"w")
 							if s and t then
 								t:write(s:read("*all"))
 								t:close()
 								s:close()
-							end
+							end]]
+							
+							copyfile("images/"..i , "copied/"..i)
 						end
 					end
 				elseif not v.binding3 then

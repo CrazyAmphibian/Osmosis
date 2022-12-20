@@ -8,6 +8,7 @@ local editx,edity --used for checking shit. real;llllly spaghetti code here. rea
 local scroll=0
 local hscroll=0
 
+local fonttouse="sysoneandhalf"
 
 local negation={ ["and"]="nand" , ["or"]="nor" , ["xor"]="nxor" , ["nand"]="and" , ["nor"]="or" , ["nxor"]="xor"   }
 local next={  ["and"]="or" , ["or"]="xor" , ["xor"]="and" , ["nand"]="nor" , ["nor"]="nxor" , ["nxor"]="nand"   }
@@ -142,7 +143,7 @@ function update(self, dt)
 			if editmode=="tag" and editpath[1]==implindex and editpath[2]=="true" and editpath[3]==i then
 				tc=gettagcolor(tempstring) 	end
 
-			node = gui.new_box_node(vmath.vector3(xoff1,programdata.height+yoff1,0), vmath.vector3(programdata.width/2-50*gscale,40*gscale,0))
+			node = gui.new_box_node(vmath.vector3(xoff1,programdata.height+yoff1,0), vmath.vector3(programdata.width/2-50*gscale,30	*gscale,0))
 			gui.set_pivot(node, gui.PIVOT_NW)
 	
 			if tc then gui.set_color(node, vmath.vector3(tc.b[1],tc.b[2],tc.b[3] )) end
@@ -156,13 +157,13 @@ function update(self, dt)
 				gui.set_text(node, v.change..": "..tostring(tempstring))
 				tc=gettagcolor(tempstring)
 				autofill.enabled=true
-				autofill.y=programdata.height+yoff1-40*gscale
+				autofill.y=programdata.height+yoff1-30*gscale
 				autofill.x=xoff1+60*gscale
 			end
 			gui.set_pivot(node, gui.PIVOT_NW)
 		
 			--if tc then gui.set_color(node, vmath.vector3(tc.t[1],tc.t[2],tc.t[3] )) end
-			gui.set_font(node, "sysdouble")
+			gui.set_font(node, fonttouse)
 			table.insert(guicomponents, {node=node})
 
 
@@ -171,18 +172,18 @@ function update(self, dt)
 
 			
 			--trigger event to swap
-			node = gui.new_box_node(vmath.vector3(xoff1,programdata.height+yoff1,0), vmath.vector3(60*gscale,40*gscale,0))
+			node = gui.new_box_node(vmath.vector3(xoff1,programdata.height+yoff1,0), vmath.vector3(60*gscale,30*gscale,0))
 			gui.set_alpha(node, 0)
 			gui.set_pivot(node, gui.PIVOT_NW)
 			table.insert(guicomponents, {node=node ,action="swaptagmode",towhich="true" , implication=implindex, tag=i})
 			
 			--trigger event for the text
-			node = gui.new_box_node(vmath.vector3(xoff1+60*gscale,programdata.height+yoff1,0), vmath.vector3(programdata.width/2-120*gscale,40*gscale,0))
+			node = gui.new_box_node(vmath.vector3(xoff1+60*gscale,programdata.height+yoff1,0), vmath.vector3(programdata.width/2-120*gscale,30*gscale,0))
 			gui.set_alpha(node, 0)
 			gui.set_pivot(node, gui.PIVOT_NW)
 			table.insert(guicomponents, {node=node ,action="activatetexttag",towhich="true" , implication=implindex, tag=i})
 			
-			yoff1=yoff1-40*gscale
+			yoff1=yoff1-35*gscale
 		end
 		--xoff1=xoff1-40*gscale
 
@@ -203,7 +204,7 @@ function update(self, dt)
 		table.insert(guicomponents, {node=node})
 		yoff1=yoff1-28*gscale
 
-		xoff1=xoff1+40*gscale
+		xoff1=xoff1+00*gscale
 		for i,v in pairs(impl["false"]) do
 			local tc=gettagcolor(v.tag)
 
@@ -212,7 +213,7 @@ function update(self, dt)
 			if editmode=="tag" and editpath[1]==implindex and editpath[2]=="false" and editpath[3]==i then
 				tc=gettagcolor(tempstring) 	end
 
-				node = gui.new_box_node(vmath.vector3(xoff1,programdata.height+yoff1,0), vmath.vector3(programdata.width/2-50*gscale,40*gscale,0))
+				node = gui.new_box_node(vmath.vector3(xoff1,programdata.height+yoff1,0), vmath.vector3(programdata.width/2-50*gscale,30*gscale,0))
 				gui.set_pivot(node, gui.PIVOT_NW)
 				gui.set_color(node, vmath.vector3(.1,.1,.1))
 				if tc then gui.set_color(node, vmath.vector3(tc.b[1],tc.b[2],tc.b[3] )) end
@@ -226,13 +227,13 @@ function update(self, dt)
 					gui.set_text(node, v.change..": "..tostring(tempstring))
 					tc=gettagcolor(tempstring)
 					autofill.enabled=true
-					autofill.y=programdata.height+yoff1-40*gscale
+					autofill.y=programdata.height+yoff1-30*gscale
 					autofill.x=xoff1+60*gscale
 				end
 				gui.set_pivot(node, gui.PIVOT_NW)
 				gui.set_color(node, vmath.vector3(1,1,1))
 				--if tc then gui.set_color(node, vmath.vector3(tc.t[1],tc.t[2],tc.t[3] )) end
-				gui.set_font(node, "sysdouble")
+				gui.set_font(node, fonttouse)
 				table.insert(guicomponents, {node=node})
 
 
@@ -241,21 +242,21 @@ function update(self, dt)
 
 
 				--trigger event to swap
-				node = gui.new_box_node(vmath.vector3(xoff1,programdata.height+yoff1,0), vmath.vector3(60*gscale,40*gscale,0))
+				node = gui.new_box_node(vmath.vector3(xoff1,programdata.height+yoff1,0), vmath.vector3(60*gscale,30*gscale,0))
 				gui.set_alpha(node, 0)
 				gui.set_pivot(node, gui.PIVOT_NW)
 				table.insert(guicomponents, {node=node ,action="swaptagmode",towhich="false" , implication=implindex, tag=i})
 
 				--trigger event for the text
-				node = gui.new_box_node(vmath.vector3(xoff1+60*gscale,programdata.height+yoff1,0), vmath.vector3(programdata.width/2-120*gscale,40*gscale,0))
+				node = gui.new_box_node(vmath.vector3(xoff1+60*gscale,programdata.height+yoff1,0), vmath.vector3(programdata.width/2-120*gscale,30*gscale,0))
 				gui.set_alpha(node, 0)
 				gui.set_pivot(node, gui.PIVOT_NW)
 				table.insert(guicomponents, {node=node ,action="activatetexttag",towhich="false" , implication=implindex, tag=i})
 
-				yoff1=yoff1-40*gscale
+				yoff1=yoff1-35*gscale
 				
 		end
-		xoff1=xoff1-40*gscale
+		--xoff1=xoff1-40*gscale
 		
 		--add tag button
 		node = gui.new_box_node(vmath.vector3(xoff1,programdata.height+yoff1,0), vmath.vector3(40*gscale,40*gscale,0))
@@ -289,7 +290,7 @@ function update(self, dt)
 
 			node = gui.new_text_node(vmath.vector3(programdata.width/2+xoff2,programdata.height+yoff2,0), condtable.type )
 			gui.set_pivot(node, gui.PIVOT_NW)
-			gui.set_font(node, "sysdouble")
+			gui.set_font(node, fonttouse)
 			table.insert(guicomponents, {node=node})
 			end
 			xoff2=xoff2+20*gscale
@@ -316,7 +317,7 @@ function update(self, dt)
 					table.insert(traceback, "tags")
 					table.insert(traceback, i)
 					
-					node = gui.new_box_node(vmath.vector3(programdata.width/2+xoff2,programdata.height+yoff2,0), vmath.vector3(80*gscale+programdata.width/2,40*gscale,0))
+					node = gui.new_box_node(vmath.vector3(programdata.width/2+xoff2,programdata.height+yoff2,0), vmath.vector3(80*gscale+programdata.width/2,30*gscale,0))
 					gui.set_pivot(node, gui.PIVOT_NW)
 					gui.set_color(node, vmath.vector3(.1,.1,.1))
 					edity=gui.get_position(node)
@@ -328,7 +329,7 @@ function update(self, dt)
 						v=tempstring or "" 
 						tc = gettagcolor(v)
 						autofill.enabled=true
-						autofill.x,autofill.y=(programdata.width/2+xoff2+60*gscale),(programdata.height+yoff2-40*gscale)
+						autofill.x,autofill.y=(programdata.width/2+xoff2+60*gscale),(programdata.height+yoff2-30*gscale)
 						
 					
 					end
@@ -336,10 +337,10 @@ function update(self, dt)
 					
 					node = gui.new_text_node(vmath.vector3(programdata.width/2+xoff2,programdata.height+yoff2,0), v)
 					gui.set_pivot(node, gui.PIVOT_NW)
-					gui.set_font(node, "sysdouble")
+					gui.set_font(node, fonttouse)
 					gui.set_color(node, vmath.vector3(tc.t[1],tc.t[2],tc.t[3]))
 					table.insert(guicomponents, {node=node })
-					yoff2=yoff2-45*gscale
+					yoff2=yoff2-35*gscale
 				end
 				
 			end
