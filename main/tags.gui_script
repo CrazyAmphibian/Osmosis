@@ -247,7 +247,7 @@ function on_input(self, action_id, action)
 
 
 		--first, let's go for boolean changing.
-		local mx,my = action.x,action.y
+		local mx,my = action.screen_x,action.screen_y
 		local validbox
 		local queue={}
 		function fuckme(tabel,filtacsesspoint,protected,pathstring)

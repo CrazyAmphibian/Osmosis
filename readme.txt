@@ -110,6 +110,9 @@ todo:
 
 
 changelog:
+	1.3.0
+		added ability to pause implications
+		fixed click detection on tag screen on larger resolutionss
 	1.2.9
 		made image view scroll bars more intuitive
 		bandaid solution for memory leaks
