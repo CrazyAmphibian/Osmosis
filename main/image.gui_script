@@ -134,7 +134,7 @@ function update(self, dt)
 	for i,v in pairs(tabletoparse or {}) do
 		if mode==1 then 
 
-			if not v:search(tempstring) then goto next end
+			if not cif(config.fuzzysearch,v:fuzzysearch(tempstring),v:search(tempstring)) then goto next end
 			
 			local f
 			for _,t in pairs(tags[programdata.selectedimage]) do

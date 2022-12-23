@@ -110,6 +110,12 @@ todo:
 
 
 changelog:
+	1.3.1
+		updated table.tostring function
+			now uses the newer version
+			config file should be far more readable, and prone to fewer errors
+		new option for a fuzzy search
+			makes tag searching more lenient at the cost of including more items
 	1.3.0
 		added ability to pause implications
 		fixed click detection on tag screen on larger resolutionss

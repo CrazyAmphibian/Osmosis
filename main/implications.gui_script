@@ -463,7 +463,7 @@ function update(self, dt)
 		
 		local yoff=0
 		for _,tag in pairs(newttable) do
-			if not tag:search(tempstring) then goto next end
+			if not cif(config.fuzzysearch,tag:fuzzysearch(tempstring),tag:search(tempstring)) then goto next end
 			if yoff+autofill.y < 0 then break end --end if offscreen to save resources
 
 			local tc = gettagcolor(tag)

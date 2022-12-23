@@ -187,7 +187,7 @@ function update(self, dt)
 		for i,v in pairs(newttable) do
 			i,v=v,programdata.tagcount[v]
 			
-			if not i:search(autocomplete.match) then goto next end
+			if not cif(config.fuzzysearch,i:fuzzysearch(autocomplete.match),i:search(autocomplete.match)) then goto next end
 			
 		--	print(autocomplete.y)
 			if autocomplete.y > programdata.height then break end

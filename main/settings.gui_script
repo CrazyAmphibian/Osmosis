@@ -224,7 +224,46 @@ function update(self, dt)
 	gui.set_pivot(elems["\tkeeploadinfo"].gui , 8)
 	gui.set_scale(elems["\tkeeploadinfo"].gui, vmath.vector3(guiscale,guiscale,0))
 	
-	end
+end
+
+
+
+
+
+if not (yoff<=0) then 
+	yoff=yoff+1
+	--config.keepimagesloaded
+	elems["fuzzysearchbg"]={}
+	elems["fuzzysearchbg"].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*560 , guiscale*60 , 0    ))
+	gui.set_pivot(elems["fuzzysearchbg"].gui , 8)
+	gui.set_color(elems["fuzzysearchbg"].gui , vmath.vector3(.1,.1,.1))
+
+	elems["\tfuzzysearch"]={}
+	elems["\tfuzzysearch"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), "Fuzzy Search: "..tostring(config.fuzzysearch) )
+	gui.set_pivot(elems["\tfuzzysearch"].gui , 8)
+	gui.set_font(elems["\tfuzzysearch"].gui, "sysdouble")
+	gui.set_scale(elems["\tfuzzysearch"].gui, vmath.vector3(guiscale,guiscale,0))
+
+	elems["fuzzysearchset"]={}	
+	elems["fuzzysearchset"].binding="fuzzysearch"
+	elems["fuzzysearchset"].operation="togglebool"
+	elems["fuzzysearchset"].gui = gui.new_box_node(vmath.vector3( 250*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*160 , guiscale*40 , 0    ))
+	gui.set_alpha(elems["fuzzysearchset"].gui, 0)
+	gui.set_pivot(elems["fuzzysearchset"].gui , 8)
+
+	yoff=yoff+1
+	elems["\tfuzzysearchinfo"]={}
+	elems["\tfuzzysearchinfo"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), "less strict search function for more but less exact tag results" )
+	gui.set_pivot(elems["\tfuzzysearchinfo"].gui , 8)
+	gui.set_scale(elems["\tfuzzysearchinfo"].gui, vmath.vector3(guiscale,guiscale,0))
+
+end
+
+
+
+
+
+
 
 	
 	if not (yoff<=0) then 
@@ -495,7 +534,7 @@ function on_input(self, action_id, action)
 		for i,v in pairs(elems) do
 			if v.binding then --only do this if it has a binding.
 				local pos,siz = gui.get_position(v.gui) , gui.get_size(v.gui) 
-				if not gui.pick_node(v.gui, action.x, action.y) then goto next end
+				if not gui.pick_node(v.gui, action.screen_x, action.screen_y) then goto next end
 
 				if not v.binding2 then
 					if v.operation=="add" then
