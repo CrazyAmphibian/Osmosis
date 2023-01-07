@@ -28,7 +28,30 @@ function update(self, dt)
 	elems["\tdebug"].gui = gui.new_text_node(vmath.vector3( 10*guiscale, programdata.height-(yoff*40*guiscale),0  ), "RAM: ".. math.floor(100*RAM/1000000000)/100 .."GB".."\tCPU:" ..  math.floor(CPU*1000)/1000 .."%" )
 	gui.set_pivot(elems["\tdebug"].gui , 8)--"RAM: ".. math.floor(100*profiler.get_memory_usage()/1000000000)/100 .."GB".."\tCPU:" .. math.floor(profiler.get_cpu_usage()*1000)/1000 .."%" )
 	gui.set_scale(elems["\tdebug"].gui, vmath.vector3(guiscale,guiscale,0))
+	yoff=yoff+.5
 	end
+
+	if true then --doing this for lexical scope reasons. local variables and whatnot.
+		local c,p,s=0,0,0
+		for i,v in pairs(images) do
+			c=c+1
+			if v.height and v.width then
+				p=p+1
+			end
+			if showing[i] then s=s+1 end
+		end
+		local t=0
+		for i,v in pairs(programdata.tagcount) do
+			t=t+1
+		end
+		
+		elems["\tdebug2"]={}
+		elems["\tdebug2"].gui = gui.new_text_node(vmath.vector3( 10*guiscale, programdata.height-(yoff*40*guiscale),0  ), "count:"..c.."\tshowing:"..s.."\tparsed:"..p.."\ttags:"..t )
+		gui.set_pivot(elems["\tdebug2"].gui , 8)--"RAM: ".. math.floor(100*profiler.get_memory_usage()/1000000000)/100 .."GB".."\tCPU:" .. math.floor(profiler.get_cpu_usage()*1000)/1000 .."%" )
+		gui.set_scale(elems["\tdebug2"].gui, vmath.vector3(guiscale,guiscale,0))
+	end
+	
+	
 	yoff=yoff+1
 	
 
@@ -534,7 +557,7 @@ function on_input(self, action_id, action)
 		for i,v in pairs(elems) do
 			if v.binding then --only do this if it has a binding.
 				local pos,siz = gui.get_position(v.gui) , gui.get_size(v.gui) 
-				if not gui.pick_node(v.gui, action.screen_x, action.screen_y) then goto next end
+				if not gui.pick_node(v.gui, action.x, action.y) then goto next end
 
 				if not v.binding2 then
 					if v.operation=="add" then

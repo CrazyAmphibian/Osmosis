@@ -373,7 +373,7 @@ function on_input(self, action_id, action)
 				end
 			elseif action.x >= config.guiscale*150 and not programdata.fullimagemode and action.pressed then --swap when clicked
 --				local ims , ips = gui.get_size(imageobjects["image"]) , gui.get_position(imageobjects["image"])
-				if gui.pick_node(imageobjects["image"], action.screen_x, action.screen_y) then 
+				if gui.pick_node(imageobjects["image"], action.x, action.y) then 
 						transfer(nil)
 						programdata.fullimagemode=true
 					end
@@ -389,7 +389,7 @@ function on_input(self, action_id, action)
 						--i cannot fathom why the application width is bieng divided by the zoom level. but it makes it work.
 						x=x
 						programdata.imgxs=x
-					elseif gui.pick_node(imageobjects["vscrollback"], action.screen_x, action.screen_y) then
+					elseif gui.pick_node(imageobjects["vscrollback"], action.x, action.y) then
 						local y=action.screen_y
 						--print(action.x,action.screen_x)
 						y=y*programdata.height/(programdata.height-15*config.guiscale)

@@ -110,6 +110,17 @@ todo:
 
 
 changelog:
+	1.3.2
+		added more debug info to setting page
+			now shows tag count, showing images, total images, and parsed images
+		adjusted implication code
+			should result in fewer weird gaps.
+		implications can now be named
+			viewable while colapsed and expanded
+		implication view now has a scroll bar
+		fixed some image view issues with varying resolution
+			scroll bars and click detection for image
+		settings page should work on non-standard resolutions now
 	1.3.1
 		updated table.tostring function
 			now uses the newer version
