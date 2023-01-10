@@ -87,7 +87,10 @@ controls:
 
 supported platforms:
 	windows: tested to work on 64-bit windows 10, but should work on earlier versions and 32 bit as well.
+			windows 10: confirmed 64 bit support, 32 bit should work fine
 	linux: tested on 64-bit Ubuntu, but should work on other distros.
+			debian: confirmed 64-bit support (x86)
+				ubuntu: confirmed 64-bit support (x86)
 	MacOS: does not work, and is not likley able to for lack of hardware to test it on. (feel free to try (main script: OS-specific functions))
 
 building:
@@ -110,6 +113,16 @@ todo:
 
 
 changelog:
+	1.3.3
+		settings page no longer jumps downwards when scrolling
+		reduced size of tag color font in settings menu
+			allows for more efficent use of screen space
+		tag colors can now be changed in order
+		tag colors should keep the same order
+			unable to use non-numerical indexes, note if you manually edit the config
+		tag colors now have operation modes
+			default is starting with, but also has an option for only containing
+		a blank tag on the tag screen now functions as a wildcard for all images to allow passthrough
 	1.3.2
 		added more debug info to setting page
 			now shows tag count, showing images, total images, and parsed images

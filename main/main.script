@@ -436,6 +436,7 @@ function booleancomparison(filts,tgs) --this is its own funcation that returns t
 	{type="and",tags={ "a" , "b" , {type="or", tags={"c","d"}}    }}
 	
 	]]
+	--print(table.tostring(filts))
 	local mx = 0
 	local nmatch=0	
 	for _,filtertag in pairs(filts.tags or {}) do
@@ -443,13 +444,16 @@ function booleancomparison(filts,tgs) --this is its own funcation that returns t
 		if type(filtertag)=="table" then
 			nmatch=nmatch+booleancomparison(filtertag,tgs)
 		else
+			if filtertag=="" then nmatch=nmatch+1 end --if it's in the loop, it fires too many times
 			for _,tag in pairs(tgs) do
+				--print("\""..filtertag.."\"")
 				if filtertag==tag then
 					nmatch=nmatch+1
 				end
 			end
 		end
 	end
+	--print(mx,nmatch)
 
 	if filts.type =="and" then --all true
 		if nmatch==mx then return 1 end
@@ -471,11 +475,14 @@ end
 
 function gettagcolor(tag)
 tag=tag or ""
-	for _,v in pairs(config.tagcolors) do
+	for i=1,#config.tagcolors do--_,v in pairs(config.tagcolors) do
+		local v=config.tagcolors[i]
 	--	if i==tag then return v end
 	--	if i==tag:sub(1,#i) then return v end
 	if not v.string then break end
-	if tag:sub(1,#v.string) == v.string and #v.string>=1 then return v end
+	
+	if v.mode=="begins with" and tag:sub(1,#v.string) == v.string and #v.string>=1 then return v end
+	if v.mode=="contains" and string.search(tag,v.string) then return v end
 	
 	end
 
