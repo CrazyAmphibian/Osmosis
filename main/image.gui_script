@@ -19,7 +19,8 @@ if nosave then goto force end
 				writetag(programdata.selectedimage , tags[programdata.selectedimage])
 				print("added tag "..tempstring.." to image "..programdata.selectedimage)
 			end
-			if not programdata.shift then tempstring="" end
+			if not programdata.shift then tempstring="" end --shift preserves input
+			--if programdata.control then return end --control doesn't clear - do this by aborting the reset
 		else
 			
 		end
@@ -348,6 +349,7 @@ function on_input(self, action_id, action)
 				if not editstring then
 					transfer("\raddtag")
 				else
+					tempstring=""
 					transfer(nil)
 				end
 			elseif  editstring=="\raddtag"  and action.pressed then
@@ -432,8 +434,10 @@ function on_input(self, action_id, action)
 
 			
 		elseif action_id==hash"enter" and action.pressed then 
+			local saved=tempstring
 			transfer(nil)
 			transfer("\raddtag")
+			if programdata.control then tempstring=saved end
 		end
 	end
 

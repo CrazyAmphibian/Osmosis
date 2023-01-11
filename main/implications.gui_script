@@ -190,12 +190,12 @@ function update(self, dt)
 		--xoff1=xoff1-40*gscale
 
 		--add tag button
-		node = gui.new_box_node(vmath.vector3(xoff1,programdata.height+yoff1,0), vmath.vector3(40*gscale,40*gscale,0))
+		node = gui.new_box_node(vmath.vector3(xoff1,programdata.height+yoff1,0), vmath.vector3(30*gscale,30*gscale,0))
 		gui.set_texture(node, "srcimg")
 		gui.play_flipbook(node, "add")
 		gui.set_pivot(node, gui.PIVOT_NW)
 		table.insert(guicomponents, {node=node , action="addnewtag" ,towhich="true" , implication=implindex })
-		yoff1=yoff1-40*gscale
+		yoff1=yoff1-30*gscale
 		
 		
 		--if false (failed, boo you suck)
@@ -261,12 +261,12 @@ function update(self, dt)
 		--xoff1=xoff1-40*gscale
 		
 		--add tag button
-		node = gui.new_box_node(vmath.vector3(xoff1,programdata.height+yoff1,0), vmath.vector3(40*gscale,40*gscale,0))
+		node = gui.new_box_node(vmath.vector3(xoff1,programdata.height+yoff1,0), vmath.vector3(30*gscale,30*gscale,0))
 		gui.set_texture(node, "srcimg")
 		gui.play_flipbook(node, "add")
 		gui.set_pivot(node, gui.PIVOT_NW)
 		table.insert(guicomponents, {node=node , action="addnewtag" ,towhich="false" , implication=implindex })
-		yoff1=yoff1-40*gscale
+		yoff1=yoff1-30*gscale
 		yoff1=yoff1-10*gscale --bit more space
 
 
@@ -284,22 +284,24 @@ function update(self, dt)
 		function processconditionals(condtable,level,traceback) --time to try to do a traceback
 			xoff2=xoff2-20*gscale
 			if level >0 then
-			node = gui.new_box_node(vmath.vector3(programdata.width/2+xoff2,programdata.height+yoff2,0), vmath.vector3(80*gscale,40*gscale,0))
-			gui.set_pivot(node, gui.PIVOT_NW)
-			gui.set_color(node, vmath.vector3(.1,.1,.1))
-			
-			table.insert(guicomponents, {node=node , action="cycleboolean", traceback=traceback ,m1=function() condtable.type=next[condtable.type]  end , m2=function() condtable.type=negation[condtable.type]  end })
+				node = gui.new_box_node(vmath.vector3(programdata.width/2+xoff2,programdata.height+yoff2,0), vmath.vector3(65*gscale,25*gscale,0)) --bool name node
+				gui.set_pivot(node, gui.PIVOT_NW)
+				gui.set_color(node, vmath.vector3(.1,.1,.1))
 
-			node = gui.new_text_node(vmath.vector3(programdata.width/2+xoff2,programdata.height+yoff2,0), condtable.type )
-			gui.set_pivot(node, gui.PIVOT_NW)
-			gui.set_font(node, fonttouse)
-			table.insert(guicomponents, {node=node})
+				table.insert(guicomponents, {node=node , action="cycleboolean", traceback=traceback ,m1=function() condtable.type=next[condtable.type]  end , m2=function() condtable.type=negation[condtable.type]  end })
+
+				node = gui.new_text_node(vmath.vector3(programdata.width/2+xoff2,programdata.height+yoff2,0), condtable.type )
+				gui.set_pivot(node, gui.PIVOT_NW)
+				gui.set_font(node, fonttouse)
+				table.insert(guicomponents, {node=node})
 			end
 			xoff2=xoff2+20*gscale
-			yoff2=yoff2-40*gscale
+			yoff2=yoff2-25*gscale --40
 			
 			
-			for i,v in pairs(condtable.tags) do
+			for i=1,#condtable.tags do--,v in pairs(condtable.tags) do
+				local v=condtable.tags[i]
+				
 				if type(v)=="table" then
 					xoff2=xoff2+40*gscale
 					if #v.tags >0  then --remove empty. of course it's buggy
@@ -307,7 +309,7 @@ function update(self, dt)
 						table.insert(traceback, i)
 					
 						processconditionals(v,level+1,traceback)
-						yoff2=yoff2-40*gscale
+						--yoff2=yoff2-40*gscale
 					else
 						--condtable.tags[i]=nil
 						table.remove(condtable.tags,i)
@@ -354,7 +356,7 @@ function update(self, dt)
 			
 		--	xoff2=xoff2+40*gscale
 			--the buttons to add shit
-			node = gui.new_box_node(vmath.vector3(programdata.width/2+xoff2,programdata.height+yoff2,0), vmath.vector3(40*gscale,40*gscale,0))
+			node = gui.new_box_node(vmath.vector3(programdata.width/2+xoff2,programdata.height+yoff2,0), vmath.vector3(30*gscale,30*gscale,0))
 			gui.set_pivot(node, gui.PIVOT_NW)
 			gui.set_texture(node, "srcimg")
 			gui.play_flipbook(node, "add")
@@ -363,16 +365,16 @@ function update(self, dt)
 
 			
 			
-			node = gui.new_box_node(vmath.vector3(programdata.width/2+xoff2+40*gscale,programdata.height+yoff2,0), vmath.vector3(40*gscale,40*gscale,0))
+			node = gui.new_box_node(vmath.vector3(programdata.width/2+xoff2+40*gscale,programdata.height+yoff2,0), vmath.vector3(30*gscale,30*gscale,0))
 			gui.set_pivot(node, gui.PIVOT_NW)
 			gui.set_texture(node, "srcimg")
 			gui.play_flipbook(node, "bool")
 			table.insert(guicomponents, {node=node , action="newbool", traceback=traceback,m1=function() table.insert(condtable.tags,{type="and",tags={""}}) end})
 			--xoff2=xoff2-40*gscale
-			yoff2=yoff2-40*gscale
+			yoff2=yoff2-30*gscale
 
 		end
-		yoff2=yoff2+40*gscale
+		yoff2=yoff2+25*gscale --this offset exists so that the first surrounding AND isn't offsetting. set to the same (neg) as the first offset.
 		xoff2=5+0*gscale
 		processconditionals(impl.checks,0,{implindex,"checks"})
 

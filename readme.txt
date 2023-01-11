@@ -14,6 +14,7 @@ screens and what they do:
 	image - a single image display where you can add/remove tags.
 	tags - the screen where you set your filters for images based on tags
 	settings - user prefences such as tag colors or gui scale
+	implications - allows a combination of tags to add or remove other tags
 
 
 why Osmosis?
@@ -21,6 +22,8 @@ why Osmosis?
 	much like real-world, reverse-osmosis isn't that efficent
 	but, it's incredibly good at filtering - the design of the program.
 	unlike other contemporary programs, Osmosis allows incredibly complex filtering via the use of so-called "boolean filters". (see below for more details)
+	osmosis can also handle implications, and add tags with little effort.
+	additionally, tagging is made faster via the use of the modifier keys shift and conrol (see below for more details)
 
 
 controls:
@@ -36,6 +39,8 @@ controls:
 		enter: confirm tag entry
 		scroll: scroll the image tags
 		arrow keys: go to next/previous image
+		shift: set input to selected tag (click)
+		control: preserve input string
 	image view (full size mode):
 		left click: return to regular view mode
 		scroll: scroll up/down
@@ -74,7 +79,7 @@ controls:
 
 "implications" view
 	rather than using a standard tag implication system, Osmosis uses its powerful "boolean filters" to pair tags together.
-	weather it be a simple A implies B, or a more complicated check, tags will be paired flawlessly. 
+	weather it be a simple A implies B, or a more complicated check, the program will correctly apply tags.
 	to use the implications screen, it is recomended to fist be familiar with the "boolean filter" system
 	not only can implications add tags, it can also remove them, too.
 
@@ -85,12 +90,13 @@ controls:
 		the implications are only ran once you are no longer on the page, so you can take your time to make sure it is correct.
 
 
-supported platforms:
+supported platforms: (add as you test)
 	windows: tested to work on 64-bit windows 10, but should work on earlier versions and 32 bit as well.
 			windows 10: confirmed 64 bit support, 32 bit should work fine
 	linux: tested on 64-bit Ubuntu, but should work on other distros.
 			debian: confirmed 64-bit support (x86)
 				ubuntu: confirmed 64-bit support (x86)
+					mint:  confirmed 64-bit support (x86)
 	MacOS: does not work, and is not likley able to for lack of hardware to test it on. (feel free to try (main script: OS-specific functions))
 
 building:
@@ -99,6 +105,9 @@ building:
 	if you do not wish to manually build, executables are released when there is a significant feature disparity.
 
 known issues/notes:
+	on windows a firewall popup occurs upon first startup
+		this is, from my best guess, because the engine opens a local debug server
+		feel free to disable it if it seems spooky, the program makes no network calls on its own
 	images are loaded/unloaded into memory as needed, and may cause stutter when scrolling
 		- this doesn't have a good solution, as storing image data into memory is costly
 	images are not initialized at startup (too long), and may result in flashes of color when scrolling quickly when program has just started
@@ -113,6 +122,10 @@ todo:
 
 
 changelog:
+	1.3.4
+		adjusted size of implications gui nodes
+		implication conditions should no longer change position during runtime
+		fixed erroneous tag adding when clicking the top bar with a string
 	1.3.3
 		settings page no longer jumps downwards when scrolling
 		reduced size of tag color font in settings menu
