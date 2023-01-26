@@ -483,6 +483,7 @@ tag=tag or ""
 	
 	if v.mode=="begins with" and tag:sub(1,#v.string) == v.string and #v.string>=1 then return v end
 	if v.mode=="contains" and string.search(tag,v.string) then return v end
+	if v.mode=="ends in" and tag:sub(1+#tag-#v.string,#tag)==v.string and #v.string>=1 then return v end
 	
 	end
 

@@ -122,6 +122,10 @@ todo:
 
 
 changelog:
+	V27
+		new tag color mode: ends in
+		switched version labeling
+			fits the more 'rolling release' style of development
 	1.3.4
 		adjusted size of implications gui nodes
 		implication conditions should no longer change position during runtime

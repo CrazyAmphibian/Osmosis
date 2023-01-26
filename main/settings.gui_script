@@ -672,7 +672,8 @@ function on_input(self, action_id, action)
 						table.insert(config[v.binding], v.binding2+1,temp)
 					elseif v.operation=="swapmode" then
 						local mt={["begins with"]="contains",
-						["contains"]="begins with"}
+						["contains"]="ends in",
+						["ends in"]="begins with"}
 						config[v.binding][v.binding2].mode=mt[config[v.binding][v.binding2].mode] or "begins with"
 					end
 				elseif not v.binding4 then
