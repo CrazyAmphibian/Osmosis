@@ -41,6 +41,10 @@ controls:
 		arrow keys: go to next/previous image
 		shift: set input to selected tag (click)
 		control: preserve input string
+		control+c - copy the image's tags into the clipboard
+		control+v - add the clipboard's tags to the current image
+		control+shift+c - add the image's tags into the clipboard
+		control+shift+v - replace all of the image's tags with the clipboard's
 	image view (full size mode):
 		left click: return to regular view mode
 		scroll: scroll up/down
@@ -122,6 +126,9 @@ todo:
 
 
 changelog:
+	V28
+		copy+pasting tags now supported
+		tags no longer saved with explicit indexes, making them easier to edit manually and also marginally reduces storage space.
 	V27
 		new tag color mode: ends in
 		switched version labeling

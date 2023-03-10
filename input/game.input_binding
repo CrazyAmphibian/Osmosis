@@ -46,6 +46,14 @@ key_trigger {
   input: KEY_RCTRL
   action: "control"
 }
+key_trigger {
+  input: KEY_C
+  action: "c"
+}
+key_trigger {
+  input: KEY_V
+  action: "v"
+}
 mouse_trigger {
   input: MOUSE_BUTTON_1
   action: "m1"

@@ -5,6 +5,7 @@
 	tags={}
 	filters={}
 	breakingcharacters={" ","",":","|"}
+	clipboard={}
 	
 local t=0
 	
@@ -251,7 +252,7 @@ makedir("copied")
 
 function writetag(filename , data)
 	local f=io.open("tags/"..filename , "w+")
-	f:write( "return ".. table.tostring(data,true) )
+	f:write( "return ".. table.tostring(data) )
 	f:close()
 
 	programdata.tagcount={}

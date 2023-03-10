@@ -307,6 +307,32 @@ function on_input(self, action_id, action)
 		end
 	end
 
+
+	
+	if action_id==hash"c" and action.pressed and programdata.control and not editstring then
+		if  not programdata.shift then
+			clipboard=table.copy(tags[programdata.selectedimage])
+		else
+			for i,v in pairs(tags[programdata.selectedimage]) do
+				if not isin(v,clipboard) then table.insert(clipboard, v) end
+			end
+		end
+		print(table.tostring(clipboard))
+	end
+
+	if action_id==hash"v" and action.pressed and programdata.control and not editstring then
+		if  not programdata.shift then
+			for i,v in pairs(clipboard) do
+				if not isin(v,tags[programdata.selectedimage]) then table.insert(tags[programdata.selectedimage], v) end
+			end
+			
+		else
+			tags[programdata.selectedimage]=table.copy(clipboard)
+		end
+		writetag(programdata.selectedimage,tags[programdata.selectedimage])
+	end
+
+	
 	
 	if not programdata.sidebar  then
 		if action_id == hash"mwu" and action.pressed then
