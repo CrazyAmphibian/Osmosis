@@ -89,8 +89,17 @@ function update(self, dt)
 	local yoff=0 + 10*config.guiscale + programdata.filterscroll
 	local autocomplete={x=nil,y=nil,str=nil,enabled=false}
 	local function makeelementsfromfilts(filtt,elemt,lv,hide,pathing) --filter table, element table, depth.
+		local _
 		if hide then goto doit end
+
 		xoff=xoff-20*config.guiscale --indent half - now quarter a step. makes it look better. --now here, we go though bool info
+		
+		_=gui.new_box_node(vmath.vector3(xoff+lv*40*config.guiscale,programdata.height-yoff,0), vmath.vector3(programdata.width,yoff,0))
+		gui.set_color(_, vmath.vector3(.5,.5,.5)*   (1-((lv%3)/4))    )
+		gui.set_pivot(_, gui.PIVOT_NW)
+		elemt["\n\n"]= _
+		
+	
 		elemt["type"]=gui.new_box_node(vmath.vector3(xoff+lv*40*config.guiscale,programdata.height-yoff,0), vmath.vector3(80*config.guiscale,40*config.guiscale,0) )
 		gui.set_pivot(elemt["type"], 8)
 		gui.set_color(elemt["type"], vmath.vector3(.1,.1,.1))
@@ -156,8 +165,17 @@ function update(self, dt)
 		gui.set_pivot(elemt["\rbool"], 8)
 		gui.set_texture(elemt["\rbool"], "srcimg")
 		gui.play_flipbook(elemt["\rbool"], "bool")
+
+
+
+		
 		yoff=yoff+50*config.guiscale
 
+		if _ then
+			gui.set_size(_,   vmath.vector3(2*programdata.width,yoff-10*config.guiscale,0) -gui.get_size(_)     )    
+		end
+
+		
 	end
 
 	makeelementsfromfilts(filters ,imgobj , 0,true,"tags\r")
@@ -294,7 +312,7 @@ function on_input(self, action_id, action)
 					if i~="tc" then
 				--	tempeditstring=tempeditstring..i.."\r" --storing path info here
 					filtacsesspoint[i]= fuckme(tabel[i],filtacsesspoint[i],false,pathstring..i.."\r")
-
+					elseif type(i)=="string" and i:sub(1,2)=="\n\n" then
 					else
 						for boxitem in pairs(v) do
 							if not gui.get_text(v[boxitem]) then

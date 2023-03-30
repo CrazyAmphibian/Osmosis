@@ -25,6 +25,7 @@ end
 
 
 function update(self, dt)
+	local n=0
 	autofill.enabled=false
 	for i,v in pairs(guicomponents) do
 		gui.delete_node(guicomponents[i].node)
@@ -283,7 +284,23 @@ function update(self, dt)
 
 		function processconditionals(condtable,level,traceback) --time to try to do a traceback
 			xoff2=xoff2-20*gscale
+			local _
+
+
+
+
+			
 			if level >0 then
+
+
+				--print(programdata.height+yoff2)
+
+				node = gui.new_box_node(vmath.vector3(programdata.width/2+xoff2-(gscale*20),programdata.height+yoff2-(0),0), vmath.vector3(programdata.width,0,0))
+				gui.set_color(node, vmath.vector3(.5,.5,.5)*   (1-((level%3)/4))    )
+				gui.set_pivot(node, gui.PIVOT_NW)
+				--print("created with number "..n)
+				guicomponents["\n\n"..n]= {node=node,next=n+1,sh=yoff2}
+				
 				node = gui.new_box_node(vmath.vector3(programdata.width/2+xoff2,programdata.height+yoff2,0), vmath.vector3(65*gscale,25*gscale,0)) --bool name node
 				gui.set_pivot(node, gui.PIVOT_NW)
 				gui.set_color(node, vmath.vector3(.1,.1,.1))
@@ -294,10 +311,17 @@ function update(self, dt)
 				gui.set_pivot(node, gui.PIVOT_NW)
 				gui.set_font(node, fonttouse)
 				table.insert(guicomponents, {node=node})
+				n=n+1
 			end
 			xoff2=xoff2+20*gscale
 			yoff2=yoff2-25*gscale --40
-			
+
+			--print(n)
+
+
+
+
+
 			
 			for i=1,#condtable.tags do--,v in pairs(condtable.tags) do
 				local v=condtable.tags[i]
@@ -310,11 +334,14 @@ function update(self, dt)
 					
 						processconditionals(v,level+1,traceback)
 						--yoff2=yoff2-40*gscale
+
+						
 					else
 						--condtable.tags[i]=nil
 						table.remove(condtable.tags,i)
 					end
 					xoff2=xoff2-40*gscale
+
 				else
 
 					local tc = gettagcolor(v)
@@ -328,7 +355,10 @@ function update(self, dt)
 					edity=gui.get_position(node)
 					table.insert(guicomponents, {node=node , action="activatetextcond", traceback=table.copy(traceback) ,m1=function()  tempstring=condtable.tags[i] editmode="bool"  editx=traceback  editfunc=function() condtable.tags[i]=tempstring or ""  end end ,  m2=function() table.remove(condtable.tags,i) --[[condtable.tags[i]=nil]] end  })
 					--print(editx,gui.get_position(node))
-				
+
+
+
+					
 					if table.equalto(editpath,traceback) then 
 						
 						v=tempstring or "" 
@@ -338,6 +368,9 @@ function update(self, dt)
 						
 					
 					end
+
+
+					
 					gui.set_color(node, vmath.vector3(tc.b[1],tc.b[2],tc.b[3]))
 					
 					node = gui.new_text_node(vmath.vector3(programdata.width/2+xoff2,programdata.height+yoff2,0), v)
@@ -346,11 +379,28 @@ function update(self, dt)
 					gui.set_color(node, vmath.vector3(tc.t[1],tc.t[2],tc.t[3]))
 					table.insert(guicomponents, {node=node })
 					yoff2=yoff2-35*gscale
+
+
+
+
+					
 				end
+
+				n=n-1
+				if guicomponents["\n\n"..n] then --not perfect, but it doesn't work right if it's not placed here. no idea why.
+					local gs=gui.get_size(guicomponents["\n\n"..n].node).y
+					local ys=(guicomponents["\n\n"..n].sh -yoff2)+(0)*gscale
+					gui.set_size(guicomponents["\n\n"..n].node, vmath.vector3(programdata.width ,  ys    , 0) )
+					--print(guicomponents["\n\n"..n].sh -yoff2 ,n,ys)
+					--print(math.abs(gs-(yoff2+0*gscale)))
+
+				end
+				n=n+1
+				
 				
 			end
 
-
+			--print("AAAAAAAAAAAAAAAAAAAAA")
 
 			
 			
@@ -373,12 +423,26 @@ function update(self, dt)
 			--xoff2=xoff2-40*gscale
 			yoff2=yoff2-30*gscale
 
+			--[[
+			_=gui.new_box_node(vmath.vector3(programdata.width/2+xoff2,programdata.height+yoff2,0), vmath.vector3(programdata.width,yoff2,0))
+			gui.set_color(_, vmath.vector3(.5,.5,.5)*   (1-((level%3)/4))    )
+			gui.set_pivot(_, gui.PIVOT_NW)
+			guicomponents["\n\n"]= {node=_}
+			]]
+
+
+
+			--print(n)
 		end
+
+
+		--print(n)
+		
 		yoff2=yoff2+25*gscale --this offset exists so that the first surrounding AND isn't offsetting. set to the same (neg) as the first offset.
 		xoff2=5+0*gscale
 		processconditionals(impl.checks,0,{implindex,"checks"})
 
-
+		--print(n)
 
 		::nodraw::
 
