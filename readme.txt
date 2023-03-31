@@ -128,6 +128,7 @@ todo:
 changelog:
 	V29
 		added background on tags screen (tags+implications) to make it more clear what level everything is at
+		you can now change the filenames of images in the program in the settings menu.
 	V28
 		copy+pasting tags now supported
 		tags no longer saved with explicit indexes, making them easier to edit manually and also marginally reduces storage space.

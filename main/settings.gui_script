@@ -342,6 +342,72 @@ yoff=yoff+1
 	end
 	yoff=yoff+1
 	
+
+
+
+
+	yoff=yoff+1
+	if not (yoff<=0) then 
+
+		elems["renameselectedbg"]={}
+		elems["renameselectedbg"].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*560 , guiscale*90 , 0    ))
+		gui.set_pivot(elems["renameselectedbg"].gui , 8)
+		gui.set_color(elems["renameselectedbg"].gui , vmath.vector3(.1,.1,.1))
+
+
+
+		elems["renameselectedbgCDETECT"]={}
+		elems["renameselectedbgCDETECT"].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*560 , guiscale*34 , 0    ))
+		elems["renameselectedbgCDETECT"].binding="renameselectedinputfocus"
+		elems["renameselectedbgCDETECT"].operation="renameselectedinputfocus"
+		gui.set_pivot(elems["renameselectedbgCDETECT"].gui , 8)
+		gui.set_color(elems["renameselectedbgCDETECT"].gui , vmath.vector4(1,1,1,0))
+
+
+		
+
+		elems["\trenamenewname"]={}
+		elems["\trenamenewname"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), "enter new name...") 
+		gui.set_pivot(elems["\trenamenewname"].gui , 8)
+		gui.set_font(elems["\trenamenewname"].gui, "sysoneandhalf")
+		gui.set_scale(elems["\trenamenewname"].gui, vmath.vector3(guiscale,guiscale,0))
+		gui.set_color(elems["\trenamenewname"].gui, vmath.vector3(.5,.5,.5))
+		
+		if textdata.active and textdata.binding2=="\nrename"  then
+			textdata.binding3=textdata.binding3 or ""
+			gui.set_color(elems["\trenamenewname"].gui,vmath.vector3(.75,.75,.75))
+			gui.set_text(elems["\trenamenewname"].gui, textdata.binding3 )
+		end	
+		
+		
+		elems["\trenameselected"]={}
+		elems["\trenameselected"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-((yoff+.75)*40*guiscale),0  ), "[Rename Selected]") 
+		gui.set_size(elems["\trenameselected"].gui, vmath.vector3(guiscale*560,guiscale*40,0))
+		gui.set_pivot(elems["\trenameselected"].gui , 8)
+		gui.set_font(elems["\trenameselected"].gui, "sysdouble")
+		gui.set_scale(elems["\trenameselected"].gui, vmath.vector3(guiscale,guiscale,0))
+		elems["\trenameselected"].binding="renameselectedimage"
+		elems["\trenameselected"].operation="renameselectedimage"
+
+
+
+		elems["\trenameselcetedinfo"]={}
+		elems["\trenameselcetedinfo"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-((yoff+1.75)*40*guiscale),0  ), "Rename the currently selected image. extention automatically kept." )
+		gui.set_pivot(elems["\trenameselcetedinfo"].gui , 8)
+		gui.set_scale(elems["\trenameselcetedinfo"].gui, vmath.vector3(guiscale,guiscale,0))
+
+	end
+	yoff=yoff+1.75
+	
+
+
+
+
+
+
+
+
+
 	
 	
 	
@@ -616,6 +682,7 @@ function on_input(self, action_id, action)
 				if not gui.pick_node(v.gui, action.x, action.y) then goto next end
 
 				if not v.binding2 then
+					print(v.operation)
 					if v.operation=="add" then
 						config[v.binding]=config[v.binding]+v.amount
 					elseif v.operation=="sub" then
@@ -652,6 +719,21 @@ function on_input(self, action_id, action)
 							end]]
 							
 							copyfile("images/"..i , "copied/"..i)
+						end
+					elseif v.operation=="renameselectedinputfocus" then
+						
+						textdata={active=true , binding=nil, binding2="\nrename",binding3=""}
+					elseif v.operation=="renameselectedimage" then
+				
+						if not textdata.binding and textdata.active and programdata.selectedimage then --make  sure this is selected as text.
+							newstr=textdata.binding3
+							for _,let in pairs({"/","\\",":","*","?","\"","<",">","|","\000"}) do --these characters break files on some systems.
+								newstr=newstr:replace(let,"")
+							end
+							if #newstr>0 then
+								rename(programdata.selectedimage,newstr)
+								textdata={}
+							end
 						end
 					end
 				elseif not v.binding3 then
@@ -711,20 +793,27 @@ function on_input(self, action_id, action)
 	end
 
 	if action_id==hash"text" then
-		if textdata.active then
+		if textdata.active and textdata.binding then
 			local td=textdata
 			config[td.binding][td.binding2][td.binding3]=config[td.binding][td.binding2][td.binding3]..action.text:lower()
 			writeconfigfile()
 			print("saved config file")
+		elseif textdata.active and textdata.binding2=="\nrename" then
+			local td=textdata
+			td.binding3=td.binding3..action.text
+			--print("A")
 		end
 	end
 	
 	if action_id==hash"delete" and (action.pressed or action.repeated) then
-		if textdata.active then
+		if textdata.active and textdata.binding then
 			local td=textdata
 			config[td.binding][td.binding2][td.binding3]=config[td.binding][td.binding2][td.binding3]:sub(1,#config[td.binding][td.binding2][td.binding3] -1)
 			writeconfigfile()
 			print("saved config file")
+		elseif textdata.active and textdata.binding2=="\nrename" then
+			local td=textdata
+			td.binding3=td.binding3:sub(1,#td.binding3-1)
 		end
 	end
 	

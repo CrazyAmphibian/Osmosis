@@ -62,6 +62,52 @@ function copyfile(source,target)
 end
 
 
+function rename(original,new) --handles image and tags. orgiginal includes extention. new does not.
+	local extend=""
+	for i=#original,1,-1 do --get extention
+		if original:sub(i,i)=="." then
+			extend=original:sub(i,#original)
+			break
+		end
+	end
+	print(extend)
+	new=new..extend
+
+
+
+	tags[new]=tags[original]
+	images[new]=images[original]
+	fullimagedata[new]=fullimagedata[original]
+	tags[original]=nil
+	images[original]=nil
+	fullimagedata[original]=nil
+	programdata.selectedimage=new
+	
+	if OS=="Windows" then
+		local str="move /Y \"images\\"..original.."\" \"images\\"..new.."\""  --image
+		os.execute(str)
+		print(str)
+		str="move /Y \"tags\\"..original.."\" \"tags\\"..new.."\""  --tags
+		os.execute(str)
+		print(str)
+	elseif  OS=="Linux" then
+		local str="mv  \"images/"..original.."\" \"images/"..new.."\""  --image
+		os.execute(str)
+		print(str)
+		str="mv  \"tags/"..original.."\" \"tags/"..new.."\""  --tag
+		os.execute(str)
+		print(str)
+	end
+
+
+
+	
+	--reload() --ensure changed image names don't mess things up.
+end
+
+
+--rename("bafkreibxkh7mrf6e6so6int3oqpeiifyoelsmfwjne3i3s6nxa4xgruixq.jpeg","newimage")
+
 
 function table.tostring(t,showallkeys,humanmode,rlevel,exclude)
 	rlevel=rlevel or 1
@@ -231,7 +277,36 @@ end
 
 
 
+function string.replace(base,pattern,repl) --gsub is kinda annoying to work with with the special formatting. let's fix that.
+local newstr=""
+local n=1
 
+local stringsearch=function(target,substring)
+	if type(target) ~= "string" then return nil end
+	if not substring or type(substring) ~= "string" then return nil end
+	for i=1,#target-#substring+1 do
+		if target:sub(i,i+#substring-1)==substring then
+			return i,i+#substring-1
+		end
+	end
+end
+
+repeat
+	local sr,sr2=stringsearch(base:sub(n),pattern)
+
+	if sr then
+		newstr=newstr..base:sub(n,sr-1)
+		newstr=newstr..repl
+		n=sr2+1
+	end
+	if not sr then
+		newstr=newstr..base:sub(n)
+		n=n+#base:sub(n)
+	end
+until n>#base
+
+return newstr
+end
 
 
 
