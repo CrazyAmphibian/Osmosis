@@ -179,7 +179,7 @@ function update(self, dt)
 	end
 
 	makeelementsfromfilts(filters ,imgobj , 0,true,"tags\r")
-
+	
 	if autocomplete.enabled then
 			
 		imgobj["tc"]={}
@@ -187,8 +187,8 @@ function update(self, dt)
 		autocomplete.x=autocomplete.x + config.guiscale*80
 
 
-		newttable={} -- time to copy pase this from the image script
-		for i,v in pairs(programdata.tagcount) do
+		newttable=ordertagsuggestions(autocomplete.match) -- time to copy pase this from the image script
+		--[[for i,v in pairs(programdata.tagcount) do
 			local added
 			for i2,v2 in pairs(newttable) do
 				if programdata.tagcount[v2]<v then
@@ -199,13 +199,13 @@ function update(self, dt)
 			end
 			if not added then table.insert(newttable, i) end
 		end
-		
+		]]
 
 		
 		for i,v in pairs(newttable) do
 			i,v=v,programdata.tagcount[v]
 			
-			if not cif(config.fuzzysearch,i:fuzzysearch(autocomplete.match),i:search(autocomplete.match)) then goto next end
+			--if not cif(config.fuzzysearch,i:fuzzysearch(autocomplete.match),i:search(autocomplete.match)) then goto next end
 			
 		--	print(autocomplete.y)
 			if autocomplete.y > programdata.height then break end

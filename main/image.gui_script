@@ -108,8 +108,8 @@ function update(self, dt)
 		mode=1
 		tabletoparse=programdata.tagcount
 
-		tabletoparse={} -- so that the numbers are in an order instead of whatever memory is
-
+		tabletoparse=ordertagsuggestions(tempstring,tags[programdata.selectedimage]) -- so that the numbers are in an order instead of whatever memory is
+--[[
 		for i,v in pairs(programdata.tagcount) do --doing this has made me see just how unstable this code is. prone to breaking. a lot.
 			local added
 			for i2,v2 in pairs(tabletoparse) do
@@ -124,7 +124,7 @@ function update(self, dt)
 			end
 		
 			if not added then table.insert(tabletoparse, i) end
-		end
+		end]]
 		
 		
 	elseif not programdata.fullimagemode then
@@ -135,7 +135,7 @@ function update(self, dt)
 	for i,v in pairs(tabletoparse or {}) do
 		if mode==1 then 
 
-			if not cif(config.fuzzysearch,v:fuzzysearch(tempstring),v:search(tempstring)) then goto next end
+			--if not cif(config.fuzzysearch,v:fuzzysearch(tempstring),v:search(tempstring)) then goto next end
 			
 			local f
 			for _,t in pairs(tags[programdata.selectedimage]) do

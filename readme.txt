@@ -78,6 +78,12 @@ controls:
 		NOR - none of the tags being met to show (like NOT in other programs)
 		NXOR - that either all or none of the tags be met to show 
 	the filters can also be nested, to allow for an infinitely customizable filtering.
+	Example: to filter out results matching A unless they also match B:
+		NAND
+			OR
+				A
+			NOR
+				B
 	to remove a boolean filter, remove all of its paired tags, and it will automatically delete.
 
 
@@ -126,6 +132,11 @@ todo:
 
 
 changelog:
+	V30
+		fixed bug where renaming images breaks arrow key navigation  (issue #6)
+		added "smart search" to to image view.
+			attempts to sort tags by how they're paired with other images.
+			adjustable strength in the config.
 	V29
 		added background on tags screen (tags+implications) to make it more clear what level everything is at
 		you can now change the filenames of images in the program in the settings menu.

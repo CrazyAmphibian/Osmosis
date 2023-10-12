@@ -73,6 +73,9 @@ function rename(original,new) --handles image and tags. orgiginal includes exten
 	print(extend)
 	new=new..extend
 
+	for i,v in pairs(imageorder or {}) do
+		if v==original then imageorder[i]=new print("changed") break end
+	end
 
 
 	tags[new]=tags[original]
@@ -355,11 +358,11 @@ end
 
 
 function hotloadimage(image) --only returns image size and nothing else. about 10x+ faster than image.load, but does not load all pixel data.
-out={width=0,height=0}
+local out={width=0,height=0}
 local f=io.open("images/"..image ,"rb")
 local rd=""
 if f then
-rd=f:read("*all")
+	rd=f:read("*all")
 end
 rd=rd or ""
 
@@ -394,6 +397,84 @@ rd=rd or ""
 	
 	
 end
+
+
+
+
+function ordertagsuggestions(textinput,taglist)
+	local otab={}
+	if _LASTFILTEROUTPUT and _NOINPUTFRAME then print("sav!") return _LASTFILTEROUTPUT end --to save some computation time, as my (very efficent) code does this EVERY FRAME.
+	print("ok FINE")
+	local sorted={} --first sort the tags by count.
+	if not taglist then --well, assuming there's no other tags present
+		for i,v in pairs(programdata.tagcount) do
+			local added
+			for i2,v2 in pairs(sorted) do
+				if programdata.tagcount[v2]<v then
+					table.insert(sorted, i2 , i)
+					added=true
+					break
+				end
+			end
+			if not added then table.insert(sorted, i) end
+		end 
+	else --if there are, let's try to group tags together that occur more often.
+	--so, it isn't perfect, but it's (usually) better than nothing, i guess. i don't know of a better algorithm, though.
+	local s2={}
+		--wow look at this, 3 layers of nested for loops. performance? never heard of her! ahahahahahahahahh
+		for i,v in pairs(taglist) do --for each tag...
+			for i2,v2 in pairs(tags) do --go through each image's tags.
+			local mc=0
+			for i,v in pairs(taglist) do for _,v2 in pairs(v2) do mc=mc+(v==v2 and 1 or 0) end end --give more weight to results which inter-relate more.
+				if isin(v, v2) then --if we have one of our tags in there...
+					--associationtable[v]={}
+					for _,tag in pairs(v2) do
+						--associationtable[v][tag]=(associationtable[v][tag] or 0) +1
+						s2[tag]=(s2[tag] or 0)+1*config.smartsearchstrength*(mc)/5
+					end
+				else
+					for _,tag in pairs(v2) do
+						s2[tag]=(s2[tag] or 0)-1*config.smartsearchstrength
+					end
+				end
+			end
+		end
+
+		--because this might not have every tag, let's make sure there's every tag here.
+		for i,v in pairs(programdata.tagcount) do
+			s2[i]=(s2[i] or 0) +v --less influence on tag count. want to prioritize similarity first.
+		end
+		
+		
+		--then reuse the old sorting code.
+		for i,v in pairs(s2) do
+			local added
+			for i2,v2 in pairs(sorted) do
+				if s2[v2]<v then
+					table.insert(sorted, i2 , i)
+					added=true
+					break
+				end
+			end
+			if not added then table.insert(sorted, i) end
+		end 
+		
+		
+		
+	end
+	for i=1,#sorted do --then, search for it.
+		local v=sorted[i]
+		if config.fuzzysearch and v:fuzzysearch(textinput) or v:search(textinput)  then
+			table.insert(otab, v)
+		end
+	end
+	
+	
+	_LASTFILTEROUTPUT=otab
+	return otab
+end
+
+
 
 
 --specialchars={}
@@ -434,6 +515,7 @@ function reload() --refreshes all images, tags, ect
 	config.implications=config.implications or {}
 	config.keepimagesloaded=config.keepimagesloaded or false
 	config.hideimplications=config.hideimplications or {}
+	config.smartsearchstrength=config.smartsearchstrength or 1 -- mhm higher = less dependance on tag amount.
 	local imagestor= getfiles("images")
 	for _,v in pairs(imagestor) do
 		if not ( v:sub(#v-3 ,#v  ):lower()==".png" or v:sub(#v-3 ,#v  ):lower()==".jpg" or v:sub(#v-4 ,#v  ):lower()==".jpeg"  ) then goto next end
@@ -618,6 +700,8 @@ end
 
 
 function update(self, dt)
+	
+	config.smartsearchstrength=math.max(0, config.smartsearchstrength)
 	t=t+dt
 	if t>20 then t=t-20 collectgarbage("collect") print("GC") end --hopefully saves some memory.
 	--delta=dt
@@ -647,12 +731,19 @@ function update(self, dt)
 	programdata.width , programdata.height = window.get_size()
 	--pprint(images)
 	--print(programdata.maxgalscroll )
+	if (not _NOINPUTFRAME) and _DEBOUNCE then
+		_NOINPUTFRAME=true
+	end
+	_DEBOUNCE=true
 end
 
 function on_input(self, action_id, action)
 
 
-
+	if action_id then
+		_NOINPUTFRAME=false
+		_DEBOUNCE=false
+	end
 
 	if action_id==hash"shift" then
 		programdata.shift=true

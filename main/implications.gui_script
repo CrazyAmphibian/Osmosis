@@ -535,7 +535,8 @@ function update(self, dt)
 	table.insert(guicomponents, {node=node })
 	
 	if autofill.enabled then
-		newttable={} -- first get the tags in order
+		newttable=ordertagsuggestions(tempstring) -- first get the tags in order
+		--[[
 		for i,v in pairs(programdata.tagcount) do
 			local added
 			for i2,v2 in pairs(newttable) do
@@ -546,11 +547,11 @@ function update(self, dt)
 				end
 			end
 			if not added then table.insert(newttable, i) end
-		end
+		end]]
 		
 		local yoff=0
 		for _,tag in pairs(newttable) do
-			if not cif(config.fuzzysearch,tag:fuzzysearch(tempstring),tag:search(tempstring)) then goto next end
+			--if not cif(config.fuzzysearch,tag:fuzzysearch(tempstring),tag:search(tempstring)) then goto next end
 			if yoff+autofill.y < 0 then break end --end if offscreen to save resources
 
 			local tc = gettagcolor(tag)

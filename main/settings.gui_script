@@ -289,6 +289,87 @@ yoff=yoff+1
 
 
 
+
+
+yoff=yoff+1
+if not (yoff<=0) then 
+	elems["smartsearchbg"]={}
+	elems["smartsearchbg"].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*560 , guiscale*60 , 0    ))
+	gui.set_pivot(elems["smartsearchbg"].gui , 8)
+	gui.set_color(elems["smartsearchbg"].gui , vmath.vector3(.1,.1,.1))
+
+	elems["\tsmartsearch"]={}
+	elems["\tsmartsearch"].gui = gui.new_text_node(vmath.vector3( 160*guiscale, programdata.height-(yoff*40*guiscale),0  ), "Smart search strength: "..config.smartsearchstrength )
+	gui.set_pivot(elems["\tsmartsearch"].gui , 8)
+	gui.set_font(elems["\tsmartsearch"].gui, "sysdouble")
+	gui.set_scale(elems["\tsmartsearch"].gui, vmath.vector3(guiscale,guiscale,0))
+
+	elems["smartsearchinc"]={}	
+	elems["smartsearchinc"].binding="smartsearchstrength"
+	elems["smartsearchinc"].operation="add"
+	elems["smartsearchinc"].amount=.25
+	elems["smartsearchinc"].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*40 , guiscale*40 , 0    ))
+	gui.set_pivot(elems["smartsearchinc"].gui , 8)
+	gui.set_texture(elems["smartsearchinc"].gui, "srcimg")
+	gui.play_flipbook(elems["smartsearchinc"].gui, "add")
+
+	elems["smartsearchdec"]={}	
+	elems["smartsearchdec"].binding="smartsearchstrength"
+	elems["smartsearchdec"].operation="sub"
+	elems["smartsearchdec"].amount=.25
+	elems["smartsearchdec"].gui = gui.new_box_node(vmath.vector3( 100*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*40 , guiscale*40 , 0    ))
+	gui.set_pivot(elems["smartsearchdec"].gui , 8)
+	gui.set_texture(elems["smartsearchdec"].gui, "srcimg")
+	gui.play_flipbook(elems["smartsearchdec"].gui, "sub")
+end
+yoff=yoff+1
+if not (yoff<=0) then 
+	elems["\tsmartsearchinfo"]={}
+	elems["\tsmartsearchinfo"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), "how strongly smart search is applied. 0=off, 1=ignore tag counts." )
+	gui.set_pivot(elems["\tsmartsearchinfo"].gui , 8)
+	gui.set_scale(elems["\tsmartsearchinfo"].gui, vmath.vector3(guiscale,guiscale,0))
+end
+
+
+--[[
+yoff=yoff+1
+
+if not (yoff<=0) then 
+
+	--config.keepimagesloaded
+	elems["keeploadbg"]={}
+	elems["keeploadbg"].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*560 , guiscale*60 , 0    ))
+	gui.set_pivot(elems["keeploadbg"].gui , 8)
+	gui.set_color(elems["keeploadbg"].gui , vmath.vector3(.1,.1,.1))
+
+	elems["\tkeepload"]={}
+	elems["\tkeepload"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), "Keep Images Loaded: "..tostring(config.keepimagesloaded) )
+	gui.set_pivot(elems["\tkeepload"].gui , 8)
+	gui.set_font(elems["\tkeepload"].gui, "sysdouble")
+	gui.set_scale(elems["\tkeepload"].gui, vmath.vector3(guiscale,guiscale,0))
+
+	elems["keeploadset"]={}	
+	elems["keeploadset"].binding="keepimagesloaded"
+	elems["keeploadset"].operation="togglebool"
+	elems["keeploadset"].gui = gui.new_box_node(vmath.vector3( 360*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*120 , guiscale*40 , 0    ))
+	gui.set_alpha(elems["keeploadset"].gui, 0)
+	gui.set_pivot(elems["keeploadset"].gui , 8)
+
+
+	elems["\tkeeploadinfo"]={}
+	elems["\tkeeploadinfo"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-((yoff+1)*40*guiscale),0  ), "Always keep images loaded. reduces stuttering. huge memory requirement" )
+	gui.set_pivot(elems["\tkeeploadinfo"].gui , 8)
+	gui.set_scale(elems["\tkeeploadinfo"].gui, vmath.vector3(guiscale,guiscale,0))
+
+end
+yoff=yoff+1
+]]
+
+
+
+
+
+
 yoff=yoff+1
 	if not (yoff<=0) then 
 		
