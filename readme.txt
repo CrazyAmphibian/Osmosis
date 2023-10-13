@@ -132,6 +132,9 @@ todo:
 
 
 changelog:
+	V31
+		improved performance of searching significantly (more than 8x)
+		improved boolean tag searching to not include tags already in the bool (tag screen only)
 	V30
 		fixed bug where renaming images breaks arrow key navigation  (issue #6)
 		added "smart search" to to image view.

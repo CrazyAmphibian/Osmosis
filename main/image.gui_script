@@ -108,7 +108,7 @@ function update(self, dt)
 		mode=1
 		tabletoparse=programdata.tagcount
 
-		tabletoparse=ordertagsuggestions(tempstring,tags[programdata.selectedimage]) -- so that the numbers are in an order instead of whatever memory is
+		tabletoparse=ordertagsuggestions(tempstring,tags[programdata.selectedimage],tags[programdata.selectedimage]) -- so that the numbers are in an order instead of whatever memory is
 --[[
 		for i,v in pairs(programdata.tagcount) do --doing this has made me see just how unstable this code is. prone to breaking. a lot.
 			local added
@@ -137,10 +137,12 @@ function update(self, dt)
 
 			--if not cif(config.fuzzysearch,v:fuzzysearch(tempstring),v:search(tempstring)) then goto next end
 			
-			local f
+			--local f
+			--[[
 			for _,t in pairs(tags[programdata.selectedimage]) do
 				if v==t then goto next end --prevent existing tags from showing up
 			end
+			]]
 		end
 		if yoffset<=0-programdata.height-programdata.tagscroll then goto next end --using break doesn't pair well with this sometimes for whatever reason.
 		local i2=v

@@ -363,6 +363,8 @@ function update(self, dt)
 						
 						v=tempstring or "" 
 						tc = gettagcolor(v)
+						pprint(editpath)
+						autofill.path=editpath
 						autofill.enabled=true
 						autofill.x,autofill.y=(programdata.width/2+xoff2+60*gscale),(programdata.height+yoff2-30*gscale)
 						
@@ -535,7 +537,20 @@ function update(self, dt)
 	table.insert(guicomponents, {node=node })
 	
 	if autofill.enabled then
-		newttable=ordertagsuggestions(tempstring) -- first get the tags in order
+		 --i can't get this shit to work. will do it later.
+		local exct={}
+		--[[
+		if autofill.path then
+			local t=table.copy(config.implications)
+			for i=1,#autofill.path-2 do
+				if type( t[autofill.path[i] ])=="string" then break end
+				t=t[autofill.path[i] ]
+			end
+			exct=t
+			--pprint(exct)
+		end
+		pprint(exct)]]
+		newttable=ordertagsuggestions(tempstring,nil,exct) -- first get the tags in order
 		--[[
 		for i,v in pairs(programdata.tagcount) do
 			local added

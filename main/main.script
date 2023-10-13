@@ -401,10 +401,10 @@ end
 
 
 
-function ordertagsuggestions(textinput,taglist)
+function ordertagsuggestions(textinput,taglist,excludelist)
 	local otab={}
-	if _LASTFILTEROUTPUT and _NOINPUTFRAME then print("sav!") return _LASTFILTEROUTPUT end --to save some computation time, as my (very efficent) code does this EVERY FRAME.
-	print("ok FINE")
+	if _LASTFILTEROUTPUT and _NOINPUTFRAME then return _LASTFILTEROUTPUT end --to save some computation time, as my (very efficent) code does this EVERY FRAME.
+	--local st=os.clock()
 	local sorted={} --first sort the tags by count.
 	if not taglist then --well, assuming there's no other tags present
 		for i,v in pairs(programdata.tagcount) do
@@ -416,25 +416,31 @@ function ordertagsuggestions(textinput,taglist)
 					break
 				end
 			end
-			if not added then table.insert(sorted, i) end
+			if not added then sorted[#sorted+1]=i end
 		end 
 	else --if there are, let's try to group tags together that occur more often.
 	--so, it isn't perfect, but it's (usually) better than nothing, i guess. i don't know of a better algorithm, though.
 	local s2={}
 		--wow look at this, 3 layers of nested for loops. performance? never heard of her! ahahahahahahahahh
-		for i,v in pairs(taglist) do --for each tag...
+		for i=1, #taglist do --for each tag...
+			local v=taglist[i]
 			for i2,v2 in pairs(tags) do --go through each image's tags.
 			local mc=0
-			for i,v in pairs(taglist) do for _,v2 in pairs(v2) do mc=mc+(v==v2 and 1 or 0) end end --give more weight to results which inter-relate more.
+			for i=1, #taglist do  local v=taglist[i] for _=1,#v2 do local tag=v2[_] mc=mc+(v==v2 and 1 or 0) end end --give more weight to results which inter-relate more.
 				if isin(v, v2) then --if we have one of our tags in there...
 					--associationtable[v]={}
-					for _,tag in pairs(v2) do
-						--associationtable[v][tag]=(associationtable[v][tag] or 0) +1
-						s2[tag]=(s2[tag] or 0)+1*config.smartsearchstrength*(mc)/5
+					for _=1,#v2 do
+						local tag=v2[_]
+						if tag then
+							s2[tag]=(s2[tag] or 0)+1*config.smartsearchstrength*(mc)/5
+						end
 					end
 				else
-					for _,tag in pairs(v2) do
-						s2[tag]=(s2[tag] or 0)-1*config.smartsearchstrength
+					for _=1,#v2 do
+						local tag=v2[_]
+						if tag then
+							s2[tag]=(s2[tag] or 0)-1*config.smartsearchstrength
+						end
 					end
 				end
 			end
@@ -456,7 +462,7 @@ function ordertagsuggestions(textinput,taglist)
 					break
 				end
 			end
-			if not added then table.insert(sorted, i) end
+			if not added then sorted[#sorted+1]=i end
 		end 
 		
 		
@@ -464,12 +470,13 @@ function ordertagsuggestions(textinput,taglist)
 	end
 	for i=1,#sorted do --then, search for it.
 		local v=sorted[i]
-		if config.fuzzysearch and v:fuzzysearch(textinput) or v:search(textinput)  then
-			table.insert(otab, v)
+		local notexclude=true
+		for w=1,#(excludelist or {}) do if excludelist[w]==v then  notexclude=false break end end
+		if config.fuzzysearch and v:fuzzysearch(textinput) or v:search(textinput) and notexclude then
+			otab[#otab+1]=v
 		end
 	end
-	
-	
+	--print("filtering:",os.clock()-st)
 	_LASTFILTEROUTPUT=otab
 	return otab
 end

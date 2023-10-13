@@ -138,6 +138,7 @@ function update(self, dt)
 					autocomplete.str=filtt.tags[i]
 					autocomplete.enabled=true		
 					autocomplete.match=filtt.tags[i]
+					autocomplete.filter=filtt.tags
 				end
 				
 				yoff=yoff + 40*config.guiscale+ config.guiscale*10
@@ -187,7 +188,7 @@ function update(self, dt)
 		autocomplete.x=autocomplete.x + config.guiscale*80
 
 
-		newttable=ordertagsuggestions(autocomplete.match) -- time to copy pase this from the image script
+		newttable=ordertagsuggestions(autocomplete.match,nil,autocomplete.filter) -- time to copy pase this from the image script
 		--[[for i,v in pairs(programdata.tagcount) do
 			local added
 			for i2,v2 in pairs(newttable) do
