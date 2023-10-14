@@ -421,6 +421,8 @@ function ordertagsuggestions(textinput,taglist,excludelist)
 	else --if there are, let's try to group tags together that occur more often.
 	--so, it isn't perfect, but it's (usually) better than nothing, i guess. i don't know of a better algorithm, though.
 	local s2={}
+	local s3={}
+	local ic=0 for i,v in pairs(tags) do ic=ic+1 end
 		--wow look at this, 3 layers of nested for loops. performance? never heard of her! ahahahahahahahahh
 		for i=1, #taglist do --for each tag...
 			local v=taglist[i]
@@ -432,14 +434,17 @@ function ordertagsuggestions(textinput,taglist,excludelist)
 					for _=1,#v2 do
 						local tag=v2[_]
 						if tag then
-							s2[tag]=(s2[tag] or 0)+1*config.smartsearchstrength*(mc)/5
+							s2[tag]=(s2[tag] or 0)+1*config.smartsearchstrength*ic*(mc)/5
+							s3[tag]=(s3[tag] or 0)+1
 						end
+						
 					end
 				else
 					for _=1,#v2 do
 						local tag=v2[_]
 						if tag then
-							s2[tag]=(s2[tag] or 0)-1*config.smartsearchstrength
+							s2[tag]=(s2[tag] or 0)-1*config.smartsearchstrength*ic
+							s3[tag]=(s3[tag] or 0)+1
 						end
 					end
 				end
@@ -448,9 +453,8 @@ function ordertagsuggestions(textinput,taglist,excludelist)
 
 		--because this might not have every tag, let's make sure there's every tag here.
 		for i,v in pairs(programdata.tagcount) do
-			s2[i]=(s2[i] or 0) +v --less influence on tag count. want to prioritize similarity first.
+			s2[i]=(s2[i] or 0)/(s3[i] or 1) +v --less influence on tag count. want to prioritize similarity first.
 		end
-		
 		
 		--then reuse the old sorting code.
 		for i,v in pairs(s2) do
@@ -472,11 +476,14 @@ function ordertagsuggestions(textinput,taglist,excludelist)
 		local v=sorted[i]
 		local notexclude=true
 		for w=1,#(excludelist or {}) do if excludelist[w]==v then  notexclude=false break end end
-		if config.fuzzysearch and v:fuzzysearch(textinput) or v:search(textinput) and notexclude then
+		if notexclude  and (config.fuzzysearch and v:fuzzysearch(textinput) or v:search(textinput)) then
 			otab[#otab+1]=v
 		end
 	end
 	--print("filtering:",os.clock()-st)
+
+
+	
 	_LASTFILTEROUTPUT=otab
 	return otab
 end

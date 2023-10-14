@@ -5,6 +5,8 @@ local editstring=nil
 local allowsubmit=false
 local hscroll,vscoll=0,0
 local donotdelete=false
+local mchangex,mchangey=0,0
+local enterfullrebcheck=true
 --editstring ="\raddtag" 
 
 local function transfer(to,nosave)
@@ -406,6 +408,7 @@ function on_input(self, action_id, action)
 				if gui.pick_node(imageobjects["image"], action.x, action.y) then 
 						transfer(nil)
 						programdata.fullimagemode=true
+						enterfullrebcheck=true
 					end
 				elseif programdata.fullimagemode then
 					if gui.pick_node(imageobjects["hscrollback"], action.x, action.y) then
@@ -431,12 +434,30 @@ function on_input(self, action_id, action)
 						programdata.imgys=y
 
 					elseif action.pressed then
-						programdata.fullimagemode=false
+						--programdata.fullimagemode=false
 					end
 			elseif action.pressed then
 				transfer(nil)
 			end
-			
+
+			if action.released and programdata.fullimagemode and (math.abs(mchangex)<1 or math.abs(mchangey)<1) then
+				if enterfullrebcheck then
+					enterfullrebcheck=false --to prevent clicking on the image from reseting it back on the first click.
+				else
+					programdata.fullimagemode=false
+					mchangex=0
+					mchangey=0
+				end
+			end
+
+			if action.value==1 and programdata.fullimagemode  then
+				mchangex=mchangex+action.dx
+				mchangey=mchangey+action.dy
+				programdata.imgxs=programdata.imgxs-(programdata.width/960)*action.dx/programdata.imgz
+				programdata.imgys=programdata.imgys-(programdata.height/640)*action.dy/programdata.imgz
+			end
+			print(mchangex,mchangey)
+
 		elseif action_id==hash"m2" and action.pressed then
 			local match
 			for i in pairs(imageobjects) do

@@ -132,6 +132,11 @@ todo:
 
 
 changelog:
+	V32
+		Improved smart search
+			weights results by total images and occurances better.
+		image view, full mode:
+			the image can now be dragged across the screen.
 	V31
 		improved performance of searching significantly (more than 8x)
 		improved boolean tag searching to not include tags already in the bool (tag screen only)
