@@ -325,7 +325,7 @@ end
 yoff=yoff+1
 if not (yoff<=0) then 
 	elems["\tsmartsearchinfo"]={}
-	elems["\tsmartsearchinfo"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), "how strongly smart search is applied. 0=off, 1=ignore tag counts." )
+	elems["\tsmartsearchinfo"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), "Tries to suggest tags which appear together. 0=off." )
 	gui.set_pivot(elems["\tsmartsearchinfo"].gui , 8)
 	gui.set_scale(elems["\tsmartsearchinfo"].gui, vmath.vector3(guiscale,guiscale,0))
 end

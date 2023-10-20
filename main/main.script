@@ -73,7 +73,8 @@ function rename(original,new) --handles image and tags. orgiginal includes exten
 	print(extend)
 	new=new..extend
 
-	for i,v in pairs(imageorder or {}) do
+	for i=1,#(imageorder or {}) do
+		local v=imageorder[i]
 		if v==original then imageorder[i]=new print("changed") break end
 	end
 
@@ -332,12 +333,12 @@ function writetag(filename , data)
 	local f=io.open("tags/"..filename , "w+")
 	f:write( "return ".. table.tostring(data) )
 	f:close()
-
+	programdata.taglist={}
 	programdata.tagcount={}
 	for _,v in pairs(tags) do
 		for _ , tag in pairs(v) do
-			programdata.tagcount[tag] = programdata.tagcount[tag] or 0
-			programdata.tagcount[tag] = programdata.tagcount[tag] +1
+			if not programdata.tagcount[tag] then programdata.taglist[#programdata.taglist+1]=tag end
+			programdata.tagcount[tag] = (programdata.tagcount[tag] or 0)+1
 		end
 	end
 end
@@ -420,41 +421,38 @@ function ordertagsuggestions(textinput,taglist,excludelist)
 		end 
 	else --if there are, let's try to group tags together that occur more often.
 	--so, it isn't perfect, but it's (usually) better than nothing, i guess. i don't know of a better algorithm, though.
-	local s2={}
-	local s3={}
-	local ic=0 for i,v in pairs(tags) do ic=ic+1 end
-		--wow look at this, 3 layers of nested for loops. performance? never heard of her! ahahahahahahahahh
-		for i=1, #taglist do --for each tag...
-			local v=taglist[i]
-			for i2,v2 in pairs(tags) do --go through each image's tags.
-			local mc=0
-			for i=1, #taglist do  local v=taglist[i] for _=1,#v2 do local tag=v2[_] mc=mc+(v==v2 and 1 or 0) end end --give more weight to results which inter-relate more.
-				if isin(v, v2) then --if we have one of our tags in there...
-					--associationtable[v]={}
-					for _=1,#v2 do
-						local tag=v2[_]
+	local s2={} --stores tag likeness value
+
+
+	for i,v in pairs(programdata.tagcount) do
+		s2[i]=v
+	end
+
+
+	for img,tt in pairs(tags) do --go through each tag list with the images
+		for i=1,#tt do --and each tag within the images
+			local tag=tt[i]
+			--s2[tag]=(s2[tag] or 0)
+
+			for i=1,#taglist do
+				if taglist[i]==tag then --if we find our tag in the lists
+					--print("match")
+					for i=1,#tt do 
+						local tag=tt[i]
 						if tag then
-							s2[tag]=(s2[tag] or 0)+1*config.smartsearchstrength*ic*(mc)/5
-							s3[tag]=(s3[tag] or 0)+1
-						end
-						
-					end
-				else
-					for _=1,#v2 do
-						local tag=v2[_]
-						if tag then
-							s2[tag]=(s2[tag] or 0)-1*config.smartsearchstrength*ic
-							s3[tag]=(s3[tag] or 0)+1
+							s2[tag]=s2[tag] + 2*config.smartsearchstrength --add points to every tag in the list. 2x because see below
 						end
 					end
+					for i,v in pairs(programdata.tagcount) do
+						s2[tag]=s2[tag] - config.smartsearchstrength --subtract to reduce the points of ones not in the image.
+					end
+
 				end
 			end
+
 		end
 
-		--because this might not have every tag, let's make sure there's every tag here.
-		for i,v in pairs(programdata.tagcount) do
-			s2[i]=(s2[i] or 0)/(s3[i] or 1) +v --less influence on tag count. want to prioritize similarity first.
-		end
+	end
 		
 		--then reuse the old sorting code.
 		for i,v in pairs(s2) do
@@ -468,10 +466,23 @@ function ordertagsuggestions(textinput,taglist,excludelist)
 			end
 			if not added then sorted[#sorted+1]=i end
 		end 
-		
-		
-		
+		--[[
+		w=io.open("rankdump","w")
+		k=""
+		for i,v in pairs(s2) do
+			if (v-programdata.tagcount[i])~=0 then
+				k=k..i.."\t"..(v-programdata.tagcount[i]).."\n"
+			end
+		end
+		w:write(k)
+		w:flush()
+		w:close()
+		w,k=nil,nil	
+		]]
 	end
+
+
+	
 	for i=1,#sorted do --then, search for it.
 		local v=sorted[i]
 		local notexclude=true
@@ -554,11 +565,12 @@ function reload() --refreshes all images, tags, ect
 		tags[v] = dofile("tags/"..v)
 	end
 
+	programdata.taglist={}
 	programdata.tagcount={}
 	for _,v in pairs(tags) do
 		for _ , tag in pairs(v) do
-			programdata.tagcount[tag] = programdata.tagcount[tag] or 0
-			programdata.tagcount[tag] = programdata.tagcount[tag] +1
+			if not programdata.tagcount[tag] then programdata.taglist[#programdata.taglist+1]=tag end
+			programdata.tagcount[tag] = (programdata.tagcount[tag] or 0)+1
 		end
 	end
 	--table.sort(programdata.tagcount , function(a,b) return tostring(a)<tostring(b) end  )
@@ -734,8 +746,8 @@ function update(self, dt)
 	deltatable[1]=dt
 	
 	local sum=0
-	for _,v in pairs(deltatable) do
-		sum=sum+v
+	for i=1,#deltatable do
+		sum=sum+deltatable[i]
 	end
 	delta=sum/#deltatable
 	delta=(1/60) --nevermind, frame dependant scrolling is ass. faster is slower. eugh.

@@ -25,7 +25,7 @@ function update(self, dt)
 
 	if  programdata.screen ~="gallery" then goto skip end
 
-	
+
 	local xoffset,yoffset = ( programdata.width*config.galleryimagepadding )   ,0
 	local n=1
 	local bigboy=0 --largest y-num
@@ -50,24 +50,24 @@ function update(self, dt)
 	end
 
 
-	
+
 	imageorder={}
 	for i,imgdata in pairs(images) do --first get the layout up
 		if  not showing[i] then goto next end
-	--	print(i)
-		table.insert(imageorder, i)
-		
+		--	print(i)
+		imageorder[#imageorder+1]=i
+
 		local xmult =  xscaleconstant/ (imgdata.width or 1 )
 		local ymult = xmult --multipliers for image size depending on settings and whatnot.
 
 
-	
-	programdata.maxgalscroll=yoffset
 
---merging for loops, don't mind me
-	
+		programdata.maxgalscroll=yoffset
 
---now check of they need their textures loaded in memory
+		--merging for loops, don't mind me
+
+
+		--now check of they need their textures loaded in memory
 		local visible=true
 
 		local imagesize = ymult*(imgdata.height or 1)
@@ -82,11 +82,11 @@ function update(self, dt)
 		]]
 		if imagepos < 0 then visible=false end
 		if imagepos-imagesize > programdata.height then visible=false end
-			
+
 
 
 		if visible then
-			
+
 			if (not imgdata.width) or (not imgdata.height) then --alt image loading. hopefully works better as to not frontload it all.
 				--print(i)
 				local f=io.open("images/"..i ,"rb") --open in read binary mode, because windows sucks. 
@@ -98,14 +98,14 @@ function update(self, dt)
 				if config.keepimagesloaded  then fullimagedata[i]=im end
 			end
 
-			
+
 
 			imageobjects[i] = gui.new_box_node(   vmath.vector3(  xoffset ,  programdata.galleryscroll+programdata.height -  yoffset  - padheight   ,0 )  , vmath.vector3( xmult*(imgdata.width or 1) , ymult*(imgdata.height or 1) , 0      ) )
 			gui.set_pivot(imageobjects[i] , 8) -- top left is 0,0
-			
+
 			visnum=visnum+1
 
-			
+
 			if not textures[i] then --bugged
 				local tex=fullimagedata[i] or image.load(images[i].data)  --image.load( f:read("*a")  )
 				if config.keepimagesloaded then fullimagedata[i]=tex end
@@ -113,26 +113,26 @@ function update(self, dt)
 				print("made texture")
 				textures[i]=true
 			end
-				local _,err = pcall( function() gui.set_texture(imageobjects[i], i)  end)
-				if err then --[[textures[i]=nil]] print(err ) end
-				--local p=0
-				--for i,v in pairs(textures) do p=p+1 end --print(p)
-			
+			local _,err = pcall( function() gui.set_texture(imageobjects[i], i)  end)
+			if err then --[[textures[i]=nil]] print(err ) end
+			--local p=0
+			--for i,v in pairs(textures) do p=p+1 end --print(p)
+
 		else
-				
-		if textures[i] then  gui.delete_texture(i) textures[i]=nil end
+
+			if textures[i] then  gui.delete_texture(i) textures[i]=nil end
 		end
 
-	xoffset=xoffset+(imgdata.width or 1)*xmult +padwidth
-	bigboy= math.max(bigboy, ymult*(imgdata.height or 1))
-	if n%config.imagesperrow ==0 then
-		yoffset=yoffset+bigboy+ padheight
-		xoffset = padwidth
-		bigboy=(imgdata.height or 1)*ymult
-	end
-	n=n+1
+		xoffset=xoffset+(imgdata.width or 1)*xmult +padwidth
+		bigboy= math.max(bigboy, ymult*(imgdata.height or 1))
+		if n%config.imagesperrow ==0 then
+			yoffset=yoffset+bigboy+ padheight
+			xoffset = padwidth
+			bigboy=(imgdata.height or 1)*ymult
+		end
+		n=n+1
 
-	
+
 		::next::
 	end
 
@@ -140,13 +140,13 @@ function update(self, dt)
 	imageobjects["\\scrollback"] = gui.new_box_node(vmath.vector3(programdata.width-config.guiscale*15 , programdata.height , 0) , vmath.vector3(config.guiscale*15,programdata.height , 0))
 	gui.set_pivot(imageobjects["\\scrollback"], 8)
 	gui.set_color(imageobjects["\\scrollback"], vmath.vector3(.25,.25,.25))
-	
+
 	--print(programdata.galleryscroll,programdata.maxgalscroll)
 	imageobjects["\\scrollselector"] = gui.new_box_node(vmath.vector3(programdata.width-config.guiscale*15 , programdata.height* (1-(programdata.galleryscroll/math.max(programdata.maxgalscroll,1))) , 0) , vmath.vector3(config.guiscale*15,config.guiscale*500*programdata.height/(programdata.maxgalscroll) , 0))
 	gui.set_pivot(imageobjects["\\scrollselector"], 7)
 	gui.set_color(imageobjects["\\scrollselector"], vmath.vector3(.75,.75,.75))
 
-	
+
 	--print(dt,visnum)
 	::skip::
 end
@@ -163,15 +163,15 @@ function on_input(self, action_id, action)
 		mx,my = action.screen_x , action.screen_y
 	end
 
-	
+
 	if programdata.screen=="gallery" and action_id==hash"m1" and action.pressed  and (not programdata.sidebar) then
-	--	programdata.selectedimage
+		--	programdata.selectedimage
 		for i in pairs(imageobjects) do
 			local ipos = gui.get_position(imageobjects[i])
 			local isiz = gui.get_size(imageobjects[i])
 
 
-			
+
 			if  mx >= ipos.x  and mx <= ipos.x + isiz.x and my <= ipos.y and my >= ipos.y -isiz.y and i:sub(1,1) ~="\\" then  -- and my >= ipos.y + isiz.y 
 				programdata.selectedimage=i
 				programdata.screen="image"
@@ -187,12 +187,12 @@ function on_input(self, action_id, action)
 		if action.screen_x >= programdata.width-config.guiscale*15 then
 			programdata.galleryscroll = programdata.maxgalscroll* (programdata.height-action.screen_y)/programdata.height
 		end
-		
+
 	end
 
 
 
-	
+
 end
 
 function on_reload(self)

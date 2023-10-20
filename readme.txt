@@ -132,6 +132,13 @@ todo:
 
 
 changelog:
+	V33
+		fixed not being able to click out of full image view
+		changed smart search algorithm.
+			more performant.
+			just as mid.
+		Changed smart search setting description
+			more accurrate
 	V32
 		Improved smart search
 			weights results by total images and occurances better.
