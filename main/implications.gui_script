@@ -363,7 +363,7 @@ function update(self, dt)
 						
 						v=tempstring or "" 
 						tc = gettagcolor(v)
-						pprint(editpath)
+						--pprint(editpath)
 						autofill.path=editpath
 						autofill.enabled=true
 						autofill.x,autofill.y=(programdata.width/2+xoff2+60*gscale),(programdata.height+yoff2-30*gscale)
@@ -551,6 +551,20 @@ function update(self, dt)
 		end
 		pprint(exct)]]
 		newttable=ordertagsuggestions(tempstring,nil,exct) -- first get the tags in order
+		for i=#newttable,1,-1 do
+			local v=newttable[i]
+			if not (config.fuzzysearch and v:fuzzysearch(tempstring) or v:search(tempstring)) then
+				table.remove(newttable,i)
+			else
+				for i2=1,#exct do
+					if exct[i2]==v then
+						table.remove(newttable,i)
+					end
+				end
+			end
+
+		end
+		
 		--[[
 		for i,v in pairs(programdata.tagcount) do
 			local added
@@ -641,7 +655,7 @@ function on_input(self, action_id, action)
 					print("saved config file")
 					
 				elseif v.action =="activatetexttag" then --AAAAAAAAAAAAAAAAAAAAAAAAA. this is gonna suck
-
+					lasttagsuggestion=nil
 					if not editmode then
 						tempstring=config.implications[v.implication][v.towhich][v.tag].tag or ""
 						editmode="tag"
@@ -677,7 +691,7 @@ function on_input(self, action_id, action)
 
 					if not editmode then --if not editing, start it
 						v.m1()
-
+						lasttagsuggestion=nil
 						editpath = v.traceback
 						textnocancel=true
 
@@ -702,12 +716,14 @@ function on_input(self, action_id, action)
 				print("set")
 				
 			end
-			tempstring=""
-			editmode=nil
-			editx,edity=nil,nil
-			editpath=nil
-			writeconfigfile()
-			print("saved config file")
+			if editmode then
+				tempstring=""
+				editmode=nil
+				editx,edity=nil,nil
+				editpath=nil
+				writeconfigfile()
+				print("saved config file")
+			end
 		end
 	end
 
@@ -773,7 +789,7 @@ function on_input(self, action_id, action)
 		end
 	end
 
-	if action_id==hash"tab" then
+	if action_id==hash"tab" and action.pressed then
 		writeconfigfile()
 		print("saved config file")
 	end

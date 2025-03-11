@@ -5,3 +5,5 @@
 /.internal
 config
 _oldconfig
+/.editor_settings
+/ignored

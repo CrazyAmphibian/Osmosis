@@ -1,8 +1,431 @@
 local elems={}
+local guinodes={}
 local textdata={}
 function init(self)
 	msg.post(".", "acquire_input_focus")
+
+
+	local vb=generategradientbuffer(vmath.vector3(0,1,1),vmath.vector3(1,1,1),100)
+	gui.new_texture("rgb_r", 100, 1, image.TYPE_RGB, vb, false)
+
+	vb=generategradientbuffer(vmath.vector3(1,0,1),vmath.vector3(1,1,1),100)
+	gui.new_texture("rgb_g", 100, 1, image.TYPE_RGB, vb, false)
+
+	vb=generategradientbuffer(vmath.vector3(1,1,0),vmath.vector3(1,1,1),100)
+	gui.new_texture("rgb_b", 100, 1, image.TYPE_RGB, vb, false)
 end
+
+typebinding=nil
+
+
+function generategradientbuffer(from,to,resolution) -- from -> to . x-axis only. sorry fellas. RGB
+	resolution=resolution or 100
+	local r1,g1,b1 = from.x,from.y,from.z
+	local r2,g2,b2 = to.x,to.y,to.z
+	bt={}
+	resolution=resolution-1
+	for i=0,resolution do
+		bt[#bt+1]=string.char(     math.floor(255*(r1*(1-i/resolution) + r2*(i/resolution)))  )
+		bt[#bt+1]=string.char(     math.floor(255*(g1*(1-i/resolution) + g2*(i/resolution)))  )
+		bt[#bt+1]=string.char(     math.floor(255*(b1*(1-i/resolution) + b2*(i/resolution)))  )
+	end
+	return table.concat(bt)
+end
+
+
+function addconfigsection_incrementdecrement(ypos,label,description,table,index,incamt,min,max)
+	min=min or (-1/0)
+	max=max or (1/0)
+	incamt=incamt or 1
+	if not (table or index) then return end
+	
+	local node
+	local uiscale=config.guiscale
+
+	if ypos<0 or ypos>programdata.height+uiscale*50 then goto exit end
+	
+	node=gui.new_box_node(vmath.vector3(uiscale*20,ypos,0), vmath.vector3(programdata.width-40*uiscale,50*uiscale,0))
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_color(node,vmath.vector3(.4))
+	guinodes[#guinodes+1]={node=node}
+
+
+	node = gui.new_box_node(vmath.vector3( 20*uiscale, ypos,0  ), vmath.vector3( uiscale*30   ))
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_texture(node, "srcimg")
+	gui.play_flipbook(node, "add")
+	guinodes[#guinodes+1]={node=node,input=function(nd,action_id,action)
+		if action_id==hash"m1" and action.pressed and gui.pick_node(nd.node, action.x, action.y) then
+			table[index]=table[index]+incamt
+			table[index]=math.min(table[index],max)
+			writeconfigfile()
+		end
+	end}
+
+	node = gui.new_text_node(vmath.vector3( 80*uiscale, ypos,0  ),  table[index] )
+	gui.set_pivot(node , gui.PIVOT_N)
+	gui.set_font(node, "sysoneandhalf")
+	guinodes[#guinodes+1]={node=node}
+	
+	node = gui.new_box_node(vmath.vector3( 110*uiscale, ypos,0  ), vmath.vector3( uiscale*30   ))
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_texture(node, "srcimg")
+	gui.play_flipbook(node, "sub")
+	guinodes[#guinodes+1]={node=node,input=function(nd,action_id,action)
+		if action_id==hash"m1" and action.pressed and gui.pick_node(nd.node, action.x, action.y) then
+			table[index]=table[index]-incamt
+			table[index]=math.max(table[index],min)
+			writeconfigfile()
+		end
+	end}
+
+	node = gui.new_text_node(vmath.vector3( 145*uiscale, ypos,0  ),  label or "" )
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_font(node, "sysoneandhalf")
+	guinodes[#guinodes+1]={node=node}
+
+	node = gui.new_text_node(vmath.vector3( 20*uiscale, ypos-30*uiscale,0  ),  description or "" )
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_font(node, "sysstd")
+	guinodes[#guinodes+1]={node=node}
+
+	::exit::
+	return ypos-60*uiscale
+end
+
+
+function addconfigsection_booleantoggle(ypos,label,description,table,index)
+	if not (table or index) then return end
+
+	local node
+	local uiscale=config.guiscale
+
+	if ypos<0 or ypos>programdata.height+uiscale*50 then goto exit end
+	
+	node=gui.new_box_node(vmath.vector3(uiscale*20,ypos,0), vmath.vector3(programdata.width-40*uiscale,50*uiscale,0))
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_color(node,vmath.vector3(.4))
+	guinodes[#guinodes+1]={node=node}
+
+	node = gui.new_box_node(vmath.vector3( 20*uiscale, ypos,0  ), vmath.vector3( uiscale*30   ))
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_texture(node, "srcimg")
+	gui.play_flipbook(node, table[index] and "armyes" or "armno")
+	guinodes[#guinodes+1]={node=node,input=function(nd,action_id,action)
+		if action_id==hash"m1" and action.pressed and gui.pick_node(nd.node, action.x, action.y) then
+			table[index]=not table[index]
+			writeconfigfile()
+		end
+	end}
+
+	node = gui.new_text_node(vmath.vector3( 55*uiscale, ypos,0  ),  label or "" )
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_font(node, "sysoneandhalf")
+	guinodes[#guinodes+1]={node=node}
+
+	node = gui.new_text_node(vmath.vector3( 20*uiscale, ypos-30*uiscale,0  ),  description or "" )
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_font(node, "sysstd")
+	guinodes[#guinodes+1]={node=node}
+
+	::exit::
+	return ypos-60*uiscale
+end
+
+function addconfigsection_multdiv(ypos,label,description,table,index,incamt,min,max)
+	min=min or (-1/0)
+	max=max or (1/0)
+	incamt=incamt or 1
+	if not (table or index) then return end
+
+	local node
+	local uiscale=config.guiscale
+
+	if ypos<0 or ypos>programdata.height+uiscale*50 then goto exit end
+	
+	node=gui.new_box_node(vmath.vector3(uiscale*20,ypos,0), vmath.vector3(programdata.width-40*uiscale,50*uiscale,0))
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_color(node,vmath.vector3(.4))
+	guinodes[#guinodes+1]={node=node}
+
+
+	node = gui.new_box_node(vmath.vector3( 20*uiscale, ypos,0  ), vmath.vector3( uiscale*30   ))
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_texture(node, "srcimg")
+	gui.play_flipbook(node, "add")
+	guinodes[#guinodes+1]={node=node,input=function(nd,action_id,action)
+		if action_id==hash"m1" and action.pressed and gui.pick_node(nd.node, action.x, action.y) then
+			table[index]=table[index]*incamt
+			table[index]=math.min(table[index],max)
+			writeconfigfile()
+		end
+	end}
+
+	node = gui.new_text_node(vmath.vector3( 80*uiscale, ypos,0  ),  table[index] )
+	gui.set_pivot(node , gui.PIVOT_N)
+	gui.set_font(node, "sysoneandhalf")
+	guinodes[#guinodes+1]={node=node}
+
+	node = gui.new_box_node(vmath.vector3( 110*uiscale, ypos,0  ), vmath.vector3( uiscale*30   ))
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_texture(node, "srcimg")
+	gui.play_flipbook(node, "sub")
+	guinodes[#guinodes+1]={node=node,input=function(nd,action_id,action)
+		if action_id==hash"m1" and action.pressed and gui.pick_node(nd.node, action.x, action.y) then
+			table[index]=table[index]/incamt
+			table[index]=math.max(table[index],min)
+			writeconfigfile()
+		end
+	end}
+
+	node = gui.new_text_node(vmath.vector3( 145*uiscale, ypos,0  ),  label or "" )
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_font(node, "sysoneandhalf")
+	guinodes[#guinodes+1]={node=node}
+
+	node = gui.new_text_node(vmath.vector3( 20*uiscale, ypos-30*uiscale,0  ),  description or "" )
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_font(node, "sysstd")
+	guinodes[#guinodes+1]={node=node}
+
+	::exit::
+	return ypos-60*uiscale
+end
+
+
+
+function addconfigsection_slider(ypos,label,description,table,index,min,max)
+	min=min or (0)
+	max=max or (1)
+	if not (table or index) then return end
+
+	local node
+	local uiscale=config.guiscale
+
+	if ypos<0 or ypos>programdata.height+uiscale*50 then goto exit end
+
+	node=gui.new_box_node(vmath.vector3(uiscale*20,ypos,0), vmath.vector3(programdata.width-40*uiscale,80*uiscale,0))
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_color(node,vmath.vector3(.4))
+	guinodes[#guinodes+1]={node=node}
+
+	node = gui.new_box_node(vmath.vector3( 30*uiscale, ypos-35*uiscale,0  ), vmath.vector3( uiscale*300 ,uiscale*20,0  ))
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_color(node, vmath.vector3(.2))
+	guinodes[#guinodes+1]={node=node}
+
+	node = gui.new_box_node(vmath.vector3( 35*uiscale, ypos-40*uiscale,0  ), vmath.vector3( uiscale*290 ,uiscale*10,0  ))
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_color(node, vmath.vector3(.5))
+	guinodes[#guinodes+1]={node=node,input=function(nd,action_id,action)
+		if action_id==hash"m1" and action.value==1 and gui.pick_node(nd.node, action.x, action.y) then
+
+			local p= (action.x-35*uiscale)/(uiscale*290)
+			
+			table[index]= p*(max-min) + min 
+
+			writeconfigfile()
+		end
+	end}
+
+	node = gui.new_pie_node(vmath.vector3( 35*uiscale + (uiscale*290)*( (table[index]-min)/(max-min)  )  , ypos-35*uiscale,0  ),  vmath.vector3(uiscale*20)  )
+	gui.set_pivot(node , gui.PIVOT_N)
+	gui.set_color(node, vmath.vector3(.75))
+	guinodes[#guinodes+1]={node=node}
+
+	node = gui.new_text_node(vmath.vector3( 80*uiscale, ypos,0  ),  string.format("%.2f",table[index])  )
+	gui.set_pivot(node , gui.PIVOT_N)
+	gui.set_font(node, "sysoneandhalf")
+	guinodes[#guinodes+1]={node=node}
+
+
+
+	node = gui.new_text_node(vmath.vector3( 145*uiscale, ypos,0  ),  label or "" )
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_font(node, "sysoneandhalf")
+	guinodes[#guinodes+1]={node=node}
+
+	node = gui.new_text_node(vmath.vector3( 20*uiscale, ypos-60*uiscale,0  ),  description or "" )
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_font(node, "sysstd")
+	guinodes[#guinodes+1]={node=node}
+
+	::exit::
+	return ypos-90*uiscale
+end
+
+
+
+
+
+function addconfigsection_rigbyslider(ypos,table,index,xpos,min,max,texture,colormask)
+	if not (table or index) then return end
+
+	local node
+	local uiscale=config.guiscale
+	local p=0.0
+	if ypos<0 or ypos>programdata.height+uiscale*30 then goto exit end
+
+
+	p=(table[index]-min)/(max-min)
+	
+	node=gui.new_box_node(vmath.vector3(xpos,ypos,0), vmath.vector3(200*uiscale,20*uiscale,0))
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_color(node,vmath.vector3(.4))
+	guinodes[#guinodes+1]={node=node}
+
+	node=gui.new_box_node(vmath.vector3(xpos+5*uiscale,ypos-5*uiscale,0), vmath.vector3(190*uiscale,10*uiscale,0))
+	gui.set_pivot(node , gui.PIVOT_NW)
+	if texture then gui.set_texture(node, texture) end
+	if not texture then gui.set_color(node,vmath.vector3(.25)) else gui.set_color(node,colormask or vmath.vector3(1,1,1))  end
+	guinodes[#guinodes+1]={node=node,input=function(nd,action_id,action)
+		if action_id==hash"m1" and action.value==1 and gui.pick_node(nd.node, action.x, action.y) then
+			local p=(action.x-xpos-5*uiscale)/(190*uiscale)
+			table[index]=p
+		end
+	end}
+
+	
+	
+	node=gui.new_pie_node(vmath.vector3(xpos + 195*uiscale*p  -10*uiscale ,ypos,0), vmath.vector3(20*uiscale,20*uiscale,0))
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_color(node,vmath.vector3(.75))
+	guinodes[#guinodes+1]={node=node}
+	
+	::exit::
+	return ypos
+end
+
+function addconfigsection_customtagcolor(ypos,tagindex)
+	if not tagindex then return ypos end
+
+	local node
+	local uiscale=config.guiscale
+	local ctagd=config.tagcolors[tagindex]
+	if not ctagd then return ypos end
+	if ypos<0 or ypos>programdata.height+uiscale*30 then goto exit end
+	
+	node=gui.new_box_node(vmath.vector3(uiscale*20,ypos,0), vmath.vector3(programdata.width-40*uiscale,100*uiscale,0))
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_color(node, vmath.vector3(.33))
+	guinodes[#guinodes+1]={node=node}
+
+	ypos=ypos-10
+
+
+
+
+	node=gui.new_box_node(vmath.vector3(uiscale*30,ypos,0), vmath.vector3(30*uiscale,30*uiscale,0))
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_texture(node, "srcimg")
+	gui.play_flipbook(node, "rem")
+	guinodes[#guinodes+1]={node=node,input=function(nd,action_id,action)
+		if action_id==hash"m1" and action.pressed and gui.pick_node(nd.node, action.x, action.y) then
+			config.tagcolors[tagindex]=nil
+			table.remove(config.tagcolors,tagindex)
+			writeconfigfile()
+		end 
+	end}
+
+	node=gui.new_box_node(vmath.vector3(uiscale*60,ypos,0), vmath.vector3(30*uiscale,30*uiscale,0))
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_texture(node, "srcimg")
+	gui.play_flipbook(node, "collapse")
+	gui.set_color(node,vmath.vector3(  tagindex==1 and .5 or 1.0  ))
+	guinodes[#guinodes+1]={node=node,input=function(nd,action_id,action)
+		if tagindex==1 then return end
+		if action_id==hash"m1" and action.pressed and gui.pick_node(nd.node, action.x, action.y) then
+			config.tagcolors[tagindex],config.tagcolors[tagindex-1]=config.tagcolors[tagindex-1],config.tagcolors[tagindex]
+			writeconfigfile()
+		end 
+	end}
+
+	node=gui.new_box_node(vmath.vector3(uiscale*90,ypos,0), vmath.vector3(30*uiscale,30*uiscale,0))
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_texture(node, "srcimg")
+	gui.play_flipbook(node, "expand")
+	gui.set_color(node,vmath.vector3(  tagindex==#config.tagcolors and .5 or 1.0  ))
+	guinodes[#guinodes+1]={node=node,input=function(nd,action_id,action)
+		if tagindex==#config.tagcolors then return end
+		if action_id==hash"m1" and action.pressed and gui.pick_node(nd.node, action.x, action.y) then
+			config.tagcolors[tagindex],config.tagcolors[tagindex+1]=config.tagcolors[tagindex+1],config.tagcolors[tagindex]
+			writeconfigfile()
+		end 
+	end}
+
+	
+	node=gui.new_box_node(vmath.vector3(uiscale*125,ypos,0), vmath.vector3(175*uiscale,30*uiscale,0))
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_color(node, vmath.vector3(.2))
+	guinodes[#guinodes+1]={node=node,input=function(nd,action_id,action)
+		if action_id==hash"m1" and action.pressed and gui.pick_node(nd.node, action.x, action.y) then
+			local currentmode=config.tagcolors[tagindex].mode
+			if currentmode=="begins with" then
+				config.tagcolors[tagindex].mode="contains"
+			elseif currentmode=="contains" then
+				config.tagcolors[tagindex].mode="ends in"
+			elseif currentmode=="ends in" then
+				config.tagcolors[tagindex].mode="lua pattern"	
+			else
+				config.tagcolors[tagindex].mode="begins with"
+			end
+			writeconfigfile()
+
+			
+		end 
+	end}
+	node = gui.new_text_node(vmath.vector3( 125*uiscale, ypos,0  ),  ctagd.mode )
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_font(node, "sysoneandhalf")
+	guinodes[#guinodes+1]={node=node}
+
+	
+	
+	node=gui.new_box_node(vmath.vector3(uiscale*325,ypos,0), vmath.vector3(200*uiscale,30*uiscale,0))
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_color(node, vmath.vector3(ctagd.b[1],ctagd.b[2],ctagd.b[3]))
+	guinodes[#guinodes+1]={node=node,input=function(nd,action_id,action)
+		if action_id==hash"m1" and action.pressed and gui.pick_node(nd.node, action.x, action.y) then
+		typebinding=function(txt) 
+			if #txt==0 then
+				ctagd.string=ctagd.string:sub(1,#ctagd.string-1)
+			else
+				ctagd.string=ctagd.string..txt
+			end
+			writeconfigfile()
+		end
+		end
+	end}
+
+	node = gui.new_text_node(vmath.vector3( 325*uiscale, ypos,0  ),  ctagd.string )
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_color(node, vmath.vector3(ctagd.t[1],ctagd.t[2],ctagd.t[3]))
+	gui.set_font(node, "sysoneandhalf")
+	guinodes[#guinodes+1]={node=node}
+
+
+	node = gui.new_text_node(vmath.vector3( 20*uiscale, ypos-35*uiscale,0  ),  "backing" )
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_font(node, "sysoneandhalf")
+	guinodes[#guinodes+1]={node=node}
+	addconfigsection_rigbyslider(ypos-35*uiscale,ctagd.b,1,120*uiscale,0,1,"rgb_r", vmath.vector3(1,ctagd.b[2],ctagd.b[3])   )
+	addconfigsection_rigbyslider(ypos-35*uiscale,ctagd.b,2,340*uiscale,0,1,"rgb_g", vmath.vector3(ctagd.b[1],1,ctagd.b[3]) )
+	addconfigsection_rigbyslider(ypos-35*uiscale,ctagd.b,3,560*uiscale,0,1,"rgb_b", vmath.vector3(ctagd.b[1],ctagd.b[2],1)  )
+
+	node = gui.new_text_node(vmath.vector3( 20*uiscale, ypos-60*uiscale,0  ),  "text" )
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_font(node, "sysoneandhalf")
+	guinodes[#guinodes+1]={node=node}
+	addconfigsection_rigbyslider(ypos-60*uiscale,ctagd.t,1,120*uiscale,0,1,"rgb_r", vmath.vector3(1,ctagd.t[2],ctagd.t[3]) )
+	addconfigsection_rigbyslider(ypos-60*uiscale,ctagd.t,2,340*uiscale,0,1,"rgb_g", vmath.vector3(ctagd.t[1],1,ctagd.t[3]) )
+	addconfigsection_rigbyslider(ypos-60*uiscale,ctagd.t,3,560*uiscale,0,1,"rgb_b", vmath.vector3(ctagd.t[1],ctagd.t[2],1) )
+
+
+	::exit::
+	return ypos-100
+end
+
+
 
 function update(self, dt)
 	for i in pairs(elems) do
@@ -13,9 +436,16 @@ function update(self, dt)
 	end
 	if programdata.sidebar then goto skip end
 
+	local yposition=programdata.height-programdata.settingscroll*config.guiscale
+	
 	for i in pairs(elems) do
 		gui.delete_node(elems[i].gui) --using like this to make binding events muuuuch easier.
 		elems[i]=nil
+	end
+
+	for i=1,#guinodes do
+		gui.delete_node(guinodes[i].node)
+		guinodes[i]=nil
 	end
 	
 	if programdata.screen~="settings" then programdata.settingscroll=0 programdata.settingshorscroll=0 textdata={} goto skip end
@@ -33,9 +463,9 @@ function update(self, dt)
 
 	if true then --doing this for lexical scope reasons. local variables and whatnot.
 		local c,p,s=0,0,0
-		for i,v in pairs(images) do
+		for i,v in pairs(imagedata) do
 			c=c+1
-			if v.height and v.width then
+			if v.width then
 				p=p+1
 			end
 			if showing[i] then s=s+1 end
@@ -53,318 +483,98 @@ function update(self, dt)
 	
 	
 	yoff=yoff+1
+
+	yposition=yposition-guiscale*50
 	
+	yposition=addconfigsection_incrementdecrement(yposition,"images per row","the number of images displayed per row in the gallery",config,"imagesperrow",1,1,1/0)
 
-	if not (yoff<=0) then 
-	elems["imgrowbg"]={}
-	elems["imgrowbg"].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*560 , guiscale*60 , 0    ))
-	gui.set_pivot(elems["imgrowbg"].gui , 8)
-	gui.set_color(elems["imgrowbg"].gui , vmath.vector3(.1,.1,.1))
-	elems["\timgrow"]={}
-	elems["\timgrow"].gui = gui.new_text_node(vmath.vector3( 160*guiscale, programdata.height-(yoff*40*guiscale),0  ), "Gallery Images Per Row: "..config.imagesperrow )
-	gui.set_pivot(elems["\timgrow"].gui , 8)
-	gui.set_font(elems["\timgrow"].gui, "sysdouble")
-	gui.set_scale(elems["\timgrow"].gui, vmath.vector3(guiscale,guiscale,0))
+	yposition=addconfigsection_incrementdecrement(yposition,"padding","the amount of padding between images, as a percent of the viewport size",config,"galleryimagepadding",.01,0,1)
+
+	yposition=addconfigsection_incrementdecrement(yposition,"gui scale","the size of UI elements",config,"guiscale",.1,0,1/0)
+
+	yposition=addconfigsection_incrementdecrement(yposition,"scroll sensitivity","how fast pages scroll",config,"scrollsen",.1,0,1/0)
+
+	yposition=addconfigsection_booleantoggle(yposition,"fuzzy search","tag searching will result in more results, but with less prescision",config,"fuzzysearch")
 	
-	elems["imgrowadd"]={}	
-	elems["imgrowadd"].binding="imagesperrow"
-	elems["imgrowadd"].operation="add"
-	elems["imgrowadd"].amount=1
-	elems["imgrowadd"].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*40 , guiscale*40 , 0    ))
-	gui.set_pivot(elems["imgrowadd"].gui , 8)
-	gui.set_texture(elems["imgrowadd"].gui, "srcimg")
-	gui.play_flipbook(elems["imgrowadd"].gui, "add")
+	yposition=addconfigsection_multdiv(yposition,"thumbnail size","higher values will be more clear, but use more resources and take longer to load",config,"thumbnailsize",2,32,1024)
+
+
+	yposition=addconfigsection_slider(yposition,"smart search strength","0=off. attempts to group tags which appear together when adding tags to an image.",config,"smartsearchstrength",0,1)
 	
-	elems["imgrowsub"]={}	
-	elems["imgrowsub"].binding="imagesperrow"
-	elems["imgrowsub"].operation="sub"
-	elems["imgrowsub"].amount=1
-	elems["imgrowsub"].gui = gui.new_box_node(vmath.vector3( 100*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*40 , guiscale*40 , 0    ))
-	gui.set_pivot(elems["imgrowsub"].gui , 8)
-	gui.set_texture(elems["imgrowsub"].gui, "srcimg")
-	gui.play_flipbook(elems["imgrowsub"].gui, "sub")
-	end
+	local node
 
-	yoff=yoff+1
 
-	if not (yoff<=0) then 
-	elems["\timgrowinfo"]={}
-	elems["\timgrowinfo"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), "Self explanitory. Values over 5 have heavy performance impact." )
-	gui.set_pivot(elems["\timgrowinfo"].gui , 8)
-	gui.set_scale(elems["\timgrowinfo"].gui, vmath.vector3(guiscale,guiscale,0))
-	end
+	node=gui.new_box_node(vmath.vector3(guiscale*20,yposition,0), vmath.vector3(750*guiscale,100*guiscale,0))
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_color(node, vmath.vector3(.33))
+	guinodes[#guinodes+1]={node=node}
 
-	yoff=yoff+1
+	yposition=yposition-10
+	node=gui.new_box_node(vmath.vector3(guiscale*30,yposition,0), vmath.vector3(250*guiscale,30*guiscale,0))
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_color(node, vmath.vector3(config.defaulttagcolors.b[1],config.defaulttagcolors.b[2],config.defaulttagcolors.b[3]))
+	guinodes[#guinodes+1]={node=node}
 	
-	if not (yoff<=0) then 
-	elems["guiscalebg"]={}
-	elems["guiscalebg"].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*560 , guiscale*60 , 0    ))
-	gui.set_pivot(elems["guiscalebg"].gui , 8)
-	gui.set_color(elems["guiscalebg"].gui , vmath.vector3(.1,.1,.1))
+	node = gui.new_text_node(vmath.vector3( 30*guiscale, yposition,0  ),  "default tag color" )
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_color(node, vmath.vector3(config.defaulttagcolors.t[1],config.defaulttagcolors.t[2],config.defaulttagcolors.t[3]))
+	gui.set_font(node, "sysoneandhalf")
+	guinodes[#guinodes+1]={node=node}
+
+
+	node = gui.new_text_node(vmath.vector3( 20*guiscale, yposition-35*guiscale,0  ),  "backing" )
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_font(node, "sysoneandhalf")
+	guinodes[#guinodes+1]={node=node}
+	addconfigsection_rigbyslider(yposition-35*guiscale,config.defaulttagcolors.b,1,120*guiscale,0,1,"rgb_r", vmath.vector3(1,config.defaulttagcolors.b[2],config.defaulttagcolors.b[3]))
+	addconfigsection_rigbyslider(yposition-35*guiscale,config.defaulttagcolors.b,2,340*guiscale,0,1,"rgb_g", vmath.vector3(config.defaulttagcolors.b[1],1,config.defaulttagcolors.b[3]))
+	addconfigsection_rigbyslider(yposition-35*guiscale,config.defaulttagcolors.b,3,560*guiscale,0,1,"rgb_b", vmath.vector3(config.defaulttagcolors.b[1],config.defaulttagcolors.b[2],1))
 	
-	elems["\tguiscale"]={}
-	elems["\tguiscale"].gui = gui.new_text_node(vmath.vector3( 160*guiscale, programdata.height-(yoff*40*guiscale),0  ), "GUI Scale: "..config.guiscale )
-	gui.set_pivot(elems["\tguiscale"].gui , 8)
-	gui.set_font(elems["\tguiscale"].gui, "sysdouble")
-	gui.set_scale(elems["\tguiscale"].gui, vmath.vector3(guiscale,guiscale,0))
+	node = gui.new_text_node(vmath.vector3( 20*guiscale, yposition-60*guiscale,0  ),  "text" )
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_font(node, "sysoneandhalf")
+	guinodes[#guinodes+1]={node=node}
+	addconfigsection_rigbyslider(yposition-60*guiscale,config.defaulttagcolors.t,1,120*guiscale,0,1,"rgb_r", vmath.vector3(1,config.defaulttagcolors.t[2],config.defaulttagcolors.t[3]))
+	addconfigsection_rigbyslider(yposition-60*guiscale,config.defaulttagcolors.t,2,340*guiscale,0,1,"rgb_g", vmath.vector3(config.defaulttagcolors.t[1],1,config.defaulttagcolors.t[3]))
+	addconfigsection_rigbyslider(yposition-60*guiscale,config.defaulttagcolors.t,3,560*guiscale,0,1,"rgb_b", vmath.vector3(config.defaulttagcolors.t[1],config.defaulttagcolors.t[2],1))
 
-	elems["guiscaleadd"]={}	
-	elems["guiscaleadd"].binding="guiscale"
-	elems["guiscaleadd"].operation="add"
-	elems["guiscaleadd"].amount=.05
-	elems["guiscaleadd"].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*40 , guiscale*40 , 0    ))
-	gui.set_pivot(elems["guiscaleadd"].gui , 8)
-	gui.set_texture(elems["guiscaleadd"].gui, "srcimg")
-	gui.play_flipbook(elems["guiscaleadd"].gui, "add")
-
-	elems["guiscalesub"]={}	
-	elems["guiscalesub"].binding="guiscale"
-	elems["guiscalesub"].operation="sub"
-	elems["guiscalesub"].amount=.05
-	elems["guiscalesub"].gui = gui.new_box_node(vmath.vector3( 100*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*40 , guiscale*40 , 0    ))
-	gui.set_pivot(elems["guiscalesub"].gui , 8)
-	gui.set_texture(elems["guiscalesub"].gui, "srcimg")
-	gui.play_flipbook(elems["guiscalesub"].gui, "sub")
-	end
-	yoff=yoff+1
-	if not (yoff<=0) then 
-	
-	elems["\tguiscaleinfo"]={}
-	elems["\tguiscaleinfo"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), "The size of GUI elements, such as text and buttons, but not images." )
-	gui.set_pivot(elems["\tguiscaleinfo"].gui , 8)
-	gui.set_scale(elems["\tguiscaleinfo"].gui, vmath.vector3(guiscale,guiscale,0))
-	end
+	yposition=yposition-100
 
 
-	yoff=yoff+1
 
-	if not (yoff<=0) then 
-	elems["scrollspeedbg"]={}
-	elems["scrollspeedbg"].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*560 , guiscale*60 , 0    ))
-	gui.set_pivot(elems["scrollspeedbg"].gui , 8)
-	gui.set_color(elems["scrollspeedbg"].gui , vmath.vector3(.1,.1,.1))
+	node=gui.new_text_node(vmath.vector3(guiscale*100,yposition,0), "custom tag colors")
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_font(node,"sysoneandhalf")
+	guinodes[#guinodes+1]={node=node,}
 
-	elems["\tscrollspeed"]={}
-	elems["\tscrollspeed"].gui = gui.new_text_node(vmath.vector3( 160*guiscale, programdata.height-(yoff*40*guiscale),0  ), "Scroll Speed: "..config.scrollsen )
-	gui.set_pivot(elems["\tscrollspeed"].gui , 8)
-	gui.set_font(elems["\tscrollspeed"].gui, "sysdouble")
-	gui.set_scale(elems["\tscrollspeed"].gui, vmath.vector3(guiscale,guiscale,0))
+	yposition=yposition-30
 
-	elems["scrollspeedadd"]={}	
-	elems["scrollspeedadd"].binding="scrollsen"
-	elems["scrollspeedadd"].operation="add"
-	elems["scrollspeedadd"].amount=.05
-	elems["scrollspeedadd"].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*40 , guiscale*40 , 0    ))
-	gui.set_pivot(elems["scrollspeedadd"].gui , 8)
-	gui.set_texture(elems["scrollspeedadd"].gui, "srcimg")
-	gui.play_flipbook(elems["scrollspeedadd"].gui, "add")
-
-	elems["scrollspeedsub"]={}	
-	elems["scrollspeedsub"].binding="scrollsen"
-	elems["scrollspeedsub"].operation="sub"
-	elems["scrollspeedsub"].amount=.05
-	elems["scrollspeedsub"].gui = gui.new_box_node(vmath.vector3( 100*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*40 , guiscale*40 , 0    ))
-	gui.set_pivot(elems["scrollspeedsub"].gui , 8)
-	gui.set_texture(elems["scrollspeedsub"].gui, "srcimg")
-	gui.play_flipbook(elems["scrollspeedsub"].gui, "sub")
-	end
-
-	yoff=yoff+1
-	if not (yoff<=0) then 
-	elems["\tscollspeedinfo"]={}
-	elems["\tscollspeedinfo"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), "A multiplier to the scrolling. affects all screens." )
-	gui.set_pivot(elems["\tscollspeedinfo"].gui , 8)
-	gui.set_scale(elems["\tscollspeedinfo"].gui, vmath.vector3(guiscale,guiscale,0))
+	for i=1,#config.tagcolors do
+		yposition=addconfigsection_customtagcolor(yposition,i)
 	end
 
 
 
-	yoff=yoff+1
-	if not (yoff<=0) then 
-	elems["loadnumbg"]={}
-	elems["loadnumbg"].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*560 , guiscale*60 , 0    ))
-	gui.set_pivot(elems["loadnumbg"].gui , 8)
-	gui.set_color(elems["loadnumbg"].gui , vmath.vector3(.1,.1,.1))
-
-	elems["\tloadnum"]={}
-	elems["\tloadnum"].gui = gui.new_text_node(vmath.vector3( 160*guiscale, programdata.height-(yoff*40*guiscale),0  ), "Image Loading Count: "..config.loadnum )
-	gui.set_pivot(elems["\tloadnum"].gui , 8)
-	gui.set_font(elems["\tloadnum"].gui, "sysdouble")
-	gui.set_scale(elems["\tloadnum"].gui, vmath.vector3(guiscale,guiscale,0))
-
-	elems["loadnumadd"]={}	
-	elems["loadnumadd"].binding="loadnum"
-	elems["loadnumadd"].operation="add"
-	elems["loadnumadd"].amount=1
-	elems["loadnumadd"].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*40 , guiscale*40 , 0    ))
-	gui.set_pivot(elems["loadnumadd"].gui , 8)
-	gui.set_texture(elems["loadnumadd"].gui, "srcimg")
-	gui.play_flipbook(elems["loadnumadd"].gui, "add")
-
-	elems["loadnumsub"]={}	
-	elems["loadnumsub"].binding="loadnum"
-	elems["loadnumsub"].operation="sub"
-	elems["loadnumsub"].amount=1
-	elems["loadnumsub"].gui = gui.new_box_node(vmath.vector3( 100*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*40 , guiscale*40 , 0    ))
-	gui.set_pivot(elems["loadnumsub"].gui , 8)
-	gui.set_texture(elems["loadnumsub"].gui, "srcimg")
-	gui.play_flipbook(elems["loadnumsub"].gui, "sub")
-	end
-	yoff=yoff+1
-	if not (yoff<=0) then 
-	elems["\tloadnuminfo"]={}
-	elems["\tloadnuminfo"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), "How many images are loaded at a time. affects performance at startup." )
-	gui.set_pivot(elems["\tloadnuminfo"].gui , 8)
-	gui.set_scale(elems["\tloadnuminfo"].gui, vmath.vector3(guiscale,guiscale,0))
-	end
-
-	yoff=yoff+1
-	
-	if not (yoff<=0) then 
-		
-	--config.keepimagesloaded
-	elems["keeploadbg"]={}
-	elems["keeploadbg"].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*560 , guiscale*60 , 0    ))
-	gui.set_pivot(elems["keeploadbg"].gui , 8)
-	gui.set_color(elems["keeploadbg"].gui , vmath.vector3(.1,.1,.1))
-
-	elems["\tkeepload"]={}
-	elems["\tkeepload"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), "Keep Images Loaded: "..tostring(config.keepimagesloaded) )
-	gui.set_pivot(elems["\tkeepload"].gui , 8)
-	gui.set_font(elems["\tkeepload"].gui, "sysdouble")
-	gui.set_scale(elems["\tkeepload"].gui, vmath.vector3(guiscale,guiscale,0))
-
-	elems["keeploadset"]={}	
-	elems["keeploadset"].binding="keepimagesloaded"
-	elems["keeploadset"].operation="togglebool"
-	elems["keeploadset"].gui = gui.new_box_node(vmath.vector3( 360*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*120 , guiscale*40 , 0    ))
-	gui.set_alpha(elems["keeploadset"].gui, 0)
-	gui.set_pivot(elems["keeploadset"].gui , 8)
 
 	
-	elems["\tkeeploadinfo"]={}
-	elems["\tkeeploadinfo"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-((yoff+1)*40*guiscale),0  ), "Always keep images loaded. reduces stuttering. huge memory requirement" )
-	gui.set_pivot(elems["\tkeeploadinfo"].gui , 8)
-	gui.set_scale(elems["\tkeeploadinfo"].gui, vmath.vector3(guiscale,guiscale,0))
+	node=gui.new_box_node(vmath.vector3(guiscale*30,yposition,0), vmath.vector3(30*guiscale,30*guiscale,0))
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_color(node,vmath.vector3(  .2 ))
+	guinodes[#guinodes+1]={node=node,}
+	node=gui.new_box_node(vmath.vector3(guiscale*30,yposition,0), vmath.vector3(30*guiscale,30*guiscale,0))
+	gui.set_pivot(node , gui.PIVOT_NW)
+	gui.set_texture(node, "srcimg")
+	gui.play_flipbook(node, "add")
+	gui.set_color(node,vmath.vector3(  1.0  ))
+	guinodes[#guinodes+1]={node=node,input=function(nd,action_id,action)
+		if action_id==hash"m1" and action.pressed and gui.pick_node(nd.node, action.x, action.y) then
+			config.tagcolors[#config.tagcolors+1]={string="",mode="begins with",t={1,1,1},b={0,0,0}}
+			writeconfigfile()
+		end 
+	end}
+
 	
-end
-yoff=yoff+1
-
-
-
-yoff=yoff+1
-
-if not (yoff<=0) then 
-	
-	--config.keepimagesloaded
-	elems["fuzzysearchbg"]={}
-	elems["fuzzysearchbg"].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*560 , guiscale*60 , 0    ))
-	gui.set_pivot(elems["fuzzysearchbg"].gui , 8)
-	gui.set_color(elems["fuzzysearchbg"].gui , vmath.vector3(.1,.1,.1))
-
-	elems["\tfuzzysearch"]={}
-	elems["\tfuzzysearch"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), "Fuzzy Search: "..tostring(config.fuzzysearch) )
-	gui.set_pivot(elems["\tfuzzysearch"].gui , 8)
-	gui.set_font(elems["\tfuzzysearch"].gui, "sysdouble")
-	gui.set_scale(elems["\tfuzzysearch"].gui, vmath.vector3(guiscale,guiscale,0))
-
-	elems["fuzzysearchset"]={}	
-	elems["fuzzysearchset"].binding="fuzzysearch"
-	elems["fuzzysearchset"].operation="togglebool"
-	elems["fuzzysearchset"].gui = gui.new_box_node(vmath.vector3( 250*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*160 , guiscale*40 , 0    ))
-	gui.set_alpha(elems["fuzzysearchset"].gui, 0)
-	gui.set_pivot(elems["fuzzysearchset"].gui , 8)
-
-
-	elems["\tfuzzysearchinfo"]={}
-	elems["\tfuzzysearchinfo"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-((1+yoff)*40*guiscale),0  ), "less strict search function for more but less exact tag results" )
-	gui.set_pivot(elems["\tfuzzysearchinfo"].gui , 8)
-	gui.set_scale(elems["\tfuzzysearchinfo"].gui, vmath.vector3(guiscale,guiscale,0))
-
-end
-
-yoff=yoff+1
-
-
-
-
-
-
-
-yoff=yoff+1
-if not (yoff<=0) then 
-	elems["smartsearchbg"]={}
-	elems["smartsearchbg"].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*560 , guiscale*60 , 0    ))
-	gui.set_pivot(elems["smartsearchbg"].gui , 8)
-	gui.set_color(elems["smartsearchbg"].gui , vmath.vector3(.1,.1,.1))
-
-	elems["\tsmartsearch"]={}
-	elems["\tsmartsearch"].gui = gui.new_text_node(vmath.vector3( 160*guiscale, programdata.height-(yoff*40*guiscale),0  ), "Smart search strength: "..config.smartsearchstrength )
-	gui.set_pivot(elems["\tsmartsearch"].gui , 8)
-	gui.set_font(elems["\tsmartsearch"].gui, "sysdouble")
-	gui.set_scale(elems["\tsmartsearch"].gui, vmath.vector3(guiscale,guiscale,0))
-
-	elems["smartsearchinc"]={}	
-	elems["smartsearchinc"].binding="smartsearchstrength"
-	elems["smartsearchinc"].operation="add"
-	elems["smartsearchinc"].amount=.25
-	elems["smartsearchinc"].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*40 , guiscale*40 , 0    ))
-	gui.set_pivot(elems["smartsearchinc"].gui , 8)
-	gui.set_texture(elems["smartsearchinc"].gui, "srcimg")
-	gui.play_flipbook(elems["smartsearchinc"].gui, "add")
-
-	elems["smartsearchdec"]={}	
-	elems["smartsearchdec"].binding="smartsearchstrength"
-	elems["smartsearchdec"].operation="sub"
-	elems["smartsearchdec"].amount=.25
-	elems["smartsearchdec"].gui = gui.new_box_node(vmath.vector3( 100*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*40 , guiscale*40 , 0    ))
-	gui.set_pivot(elems["smartsearchdec"].gui , 8)
-	gui.set_texture(elems["smartsearchdec"].gui, "srcimg")
-	gui.play_flipbook(elems["smartsearchdec"].gui, "sub")
-end
-yoff=yoff+1
-if not (yoff<=0) then 
-	elems["\tsmartsearchinfo"]={}
-	elems["\tsmartsearchinfo"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), "Tries to suggest tags which appear together. 0=off." )
-	gui.set_pivot(elems["\tsmartsearchinfo"].gui , 8)
-	gui.set_scale(elems["\tsmartsearchinfo"].gui, vmath.vector3(guiscale,guiscale,0))
-end
-
-
---[[
-yoff=yoff+1
-
-if not (yoff<=0) then 
-
-	--config.keepimagesloaded
-	elems["keeploadbg"]={}
-	elems["keeploadbg"].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*560 , guiscale*60 , 0    ))
-	gui.set_pivot(elems["keeploadbg"].gui , 8)
-	gui.set_color(elems["keeploadbg"].gui , vmath.vector3(.1,.1,.1))
-
-	elems["\tkeepload"]={}
-	elems["\tkeepload"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), "Keep Images Loaded: "..tostring(config.keepimagesloaded) )
-	gui.set_pivot(elems["\tkeepload"].gui , 8)
-	gui.set_font(elems["\tkeepload"].gui, "sysdouble")
-	gui.set_scale(elems["\tkeepload"].gui, vmath.vector3(guiscale,guiscale,0))
-
-	elems["keeploadset"]={}	
-	elems["keeploadset"].binding="keepimagesloaded"
-	elems["keeploadset"].operation="togglebool"
-	elems["keeploadset"].gui = gui.new_box_node(vmath.vector3( 360*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*120 , guiscale*40 , 0    ))
-	gui.set_alpha(elems["keeploadset"].gui, 0)
-	gui.set_pivot(elems["keeploadset"].gui , 8)
-
-
-	elems["\tkeeploadinfo"]={}
-	elems["\tkeeploadinfo"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-((yoff+1)*40*guiscale),0  ), "Always keep images loaded. reduces stuttering. huge memory requirement" )
-	gui.set_pivot(elems["\tkeeploadinfo"].gui , 8)
-	gui.set_scale(elems["\tkeeploadinfo"].gui, vmath.vector3(guiscale,guiscale,0))
-
-end
-yoff=yoff+1
-]]
-
+	do return end
 
 
 
@@ -396,34 +606,6 @@ yoff=yoff+1
 		
 	end
 	yoff=yoff+1
-
-	yoff=yoff+1
-	if not (yoff<=0) then 
-		
-		elems["copyselectedbg"]={}
-		elems["copyselectedbg"].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*560 , guiscale*60 , 0    ))
-		elems["copyselectedbg"].binding="copyselected"
-		elems["copyselectedbg"].operation="copyselected"
-		gui.set_pivot(elems["copyselectedbg"].gui , 8)
-		gui.set_color(elems["copyselectedbg"].gui , vmath.vector3(.1,.1,.1))
-
-		elems["\tcopyselected"]={}
-		elems["\tcopyselected"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), "[Copy Selected Image]") 
-		gui.set_pivot(elems["\tcopyselected"].gui , 8)
-		gui.set_font(elems["\tcopyselected"].gui, "sysdouble")
-		gui.set_scale(elems["\tcopyselected"].gui, vmath.vector3(guiscale,guiscale,0))
-
-
-		
-		elems["\tcopyselectedinfo"]={}
-		elems["\tcopyselectedinfo"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-((yoff+1)*40*guiscale),0  ), "Copy the currently selected image in image view" )
-		gui.set_pivot(elems["\tcopyselectedinfo"].gui , 8)
-		gui.set_scale(elems["\tcopyselectedinfo"].gui, vmath.vector3(guiscale,guiscale,0))
-
-	end
-	yoff=yoff+1
-	
-
 
 
 
@@ -482,272 +664,6 @@ yoff=yoff+1
 	
 
 
-
-
-
-
-
-
-
-	
-	
-	
-	yoff=yoff+1
-	--and now for hell: tag colors
-	--deftag
-	if not (yoff<=0) then 
-	local dtc = gettagcolor()
-	elems["deftagbg"]={}
-	elems["deftagbg"].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*560 , guiscale*40 , 0    ))
-	gui.set_pivot(elems["deftagbg"].gui , 8)
-	gui.set_color(elems["deftagbg"].gui , vmath.vector3(dtc.b[1],dtc.b[2],dtc.b[3]))
-
-	elems["\tdeftag"]={}
-	elems["\tdeftag"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), "Default Tag Color:")
-	gui.set_pivot(elems["\tdeftag"].gui , 8)
-	gui.set_font(elems["\tdeftag"].gui, "sysdouble")
-	gui.set_scale(elems["\tdeftag"].gui, vmath.vector3(guiscale,guiscale,0))
-	gui.set_color(elems["\tdeftag"].gui , vmath.vector3(dtc.t[1],dtc.t[2], dtc.t[3]))
-	end
-
-	for _,v in pairs({"t","b"}) do
-	yoff=yoff+.75
-	if not (yoff<=0) then 
-	elems["deftag"..v.."bg"]={}
-	elems["deftag"..v.."bg"].gui = gui.new_box_node(vmath.vector3( 80*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*180 , guiscale*30 , 0    ))
-	gui.set_pivot(elems["deftag"..v.."bg"].gui , 8)
-	gui.set_color(elems["deftag"..v.."bg"].gui , vmath.vector3(.1,.1,.1))
-	elems["\tdeftag"..v]={}
-	if v=="t" then
-		elems["\tdeftag"..v].gui = gui.new_text_node(vmath.vector3( 80*guiscale, programdata.height-(yoff*40*guiscale),0  ), "Text:")
-	else
-		elems["\tdeftag"..v].gui = gui.new_text_node(vmath.vector3( 80*guiscale, programdata.height-(yoff*40*guiscale),0  ), "Background:")
-	end
-	gui.set_pivot(elems["\tdeftag"..v].gui , 8)
-	gui.set_font(elems["\tdeftag"..v].gui, "sysoneandhalf")
-	gui.set_scale(elems["\tdeftag"..v].gui, vmath.vector3(guiscale,guiscale,0))
-	--gui.set_color(elems["\tdeftag"..v].gui , vmath.vector3(dtc.t[1],dtc.t[2], dtc.t[3]))
-	
-
-	local xo=10*guiscale
-	for i in pairs(config.defaulttagcolors.t) do -- 1 = r , 2 = g, 3 = b
-		if programdata.height-(yoff*40*guiscale) <0 then break end
-		elems["deftag"..v..i.."bg"]={}
-		elems["deftag"..v..i.."bg"].gui=gui.new_box_node(vmath.vector3( xo+260*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*160 , guiscale*30 , 0    ))
-		gui.set_pivot(elems["deftag"..v..i.."bg"].gui , 8)
-		gui.set_color(elems["deftag"..v..i.."bg"].gui , vmath.vector3(.1,.1,.1))
-
-		elems["default"..v.."tagcolors"..i.."add"]={}	
-		elems["default"..v.."tagcolors"..i.."add"].binding="defaulttagcolors"
-		elems["default"..v.."tagcolors"..i.."add"].binding2=v
-		elems["default"..v.."tagcolors"..i.."add"].binding3=i
-		elems["default"..v.."tagcolors"..i.."add"].operation="add"
-		elems["default"..v.."tagcolors"..i.."add"].amount=.05
-		elems["default"..v.."tagcolors"..i.."add"].gui = gui.new_box_node(vmath.vector3( xo+260*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*30 , guiscale*30 , 0    ))
-		gui.set_pivot(elems["default"..v.."tagcolors"..i.."add"].gui , 8)
-		gui.set_texture(elems["default"..v.."tagcolors"..i.."add"].gui, "srcimg")
-		gui.play_flipbook(elems["default"..v.."tagcolors"..i.."add"].gui, "add")
-
-		elems["default"..v.."tagcolors"..i.."sub"]={}	
-		elems["default"..v.."tagcolors"..i.."sub"].binding="defaulttagcolors"
-		elems["default"..v.."tagcolors"..i.."sub"].binding2=v
-		elems["default"..v.."tagcolors"..i.."sub"].binding3=i
-		elems["default"..v.."tagcolors"..i.."sub"].operation="sub"
-		elems["default"..v.."tagcolors"..i.."sub"].amount=.05
-		elems["default"..v.."tagcolors"..i.."sub"].gui = gui.new_box_node(vmath.vector3( xo+380*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*30 , guiscale*30 , 0    ))
-		gui.set_pivot(elems["default"..v.."tagcolors"..i.."sub"].gui , 8)
-		gui.set_texture(elems["default"..v.."tagcolors"..i.."sub"].gui, "srcimg")
-		gui.play_flipbook(elems["default"..v.."tagcolors"..i.."sub"].gui, "sub")
-		
-		elems["\tdeftag"..v..i.."bg"]={}
-		elems["\tdeftag"..v..i.."bg"].gui = gui.new_text_node(vmath.vector3( xo+300*guiscale, programdata.height-(yoff*40*guiscale),0  ), math.floor( config.defaulttagcolors[v][i] *100 +.49)/100 )
-		gui.set_pivot(elems["\tdeftag"..v..i.."bg"].gui , 8)
-		gui.set_font(elems["\tdeftag"..v..i.."bg"].gui, "sysoneandhalf")
-		gui.set_scale(elems["\tdeftag"..v..i.."bg"].gui, vmath.vector3(guiscale,guiscale,0))
-		--gui.set_color(elems["\tdeftag"..v..i.."bg"].gui , vmath.vector3(dtc[v][1],dtc[v][2], dtc[v][3]))
-		xo=xo+40*guiscale*4+10*guiscale
-	end
-	end
-
-	
-	end
-	yoff=yoff+1.5
-
-	if not (yoff<=0) then 
-	elems["ctagbg"]={}
-	elems["ctagbg"].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*400 , guiscale*40 , 0    ))
-	gui.set_pivot(elems["ctagbg"].gui , 8)
-	gui.set_color(elems["ctagbg"].gui , vmath.vector3(.1,.1,.1))
-
-	elems["\tctag"]={}
-	elems["\tctag"].gui = gui.new_text_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), "Custom Tag Colors:")
-	gui.set_pivot(elems["\tctag"].gui , 8)
-	gui.set_font(elems["\tctag"].gui, "sysdouble")
-	gui.set_scale(elems["\tctag"].gui, vmath.vector3(guiscale,guiscale,0))
-	end
-	
-	--this handals the dynamic user created colors.
-	for tind=1,#config.tagcolors do --tind,tdat in pairs(config.tagcolors) do --basically recycle the code above... this time it's hell 2: electric boogaloo
-	local tdat=tdat or config.tagcolors[tind]
-	if not tdat then table.remove(config.tagcolors,tind) break end --remove nil entries, i hope
-	
-		yoff=yoff+.75
-	if not (yoff<=0) then 
-		if programdata.height-(yoff*40*guiscale) <0 then  break end
-		local dtc = gettagcolor(tdat.string)
-		elems["deftagbg"..tind]={}
-		elems["deftagbg"..tind].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*560 , guiscale*40 , 0    ))
-		gui.set_pivot(elems["deftagbg"..tind].gui , 8)
-		gui.set_color(elems["deftagbg"..tind].gui , vmath.vector3(dtc.b[1],dtc.b[2],dtc.b[3]))
-
-		elems["\tdeftag"..tind]={}
-		elems["\tdeftag"..tind].gui = gui.new_text_node(vmath.vector3( 80*guiscale, programdata.height-(yoff*40*guiscale),0  ), tdat.string)
-		gui.set_pivot(elems["\tdeftag"..tind].gui , 8)
-		gui.set_size(elems["\tdeftag"..tind].gui, vmath.vector3( guiscale*520 , guiscale*40 , 0    ))
-		gui.set_font(elems["\tdeftag"..tind].gui, "sysdouble")
-		gui.set_scale(elems["\tdeftag"..tind].gui, vmath.vector3(guiscale,guiscale,0))
-		gui.set_color(elems["\tdeftag"..tind].gui , vmath.vector3(dtc.t[1],dtc.t[2], dtc.t[3]))
-		elems["\tdeftag"..tind].binding="tagcolors"
-		elems["\tdeftag"..tind].binding2=tind
-		elems["\tdeftag"..tind].binding3="string"
-		elems["\tdeftag"..tind].operation="textset"
-
-		elems["tagcolorsdelete"..tind]={}	
-		elems["tagcolorsdelete"..tind].binding="tagcolors"
-		elems["tagcolorsdelete"..tind].binding2=tind
-		elems["tagcolorsdelete"..tind].operation="delete"
-		elems["tagcolorsdelete"..tind].gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*40 , guiscale*40 , 0    ))
-		gui.set_pivot(elems["tagcolorsdelete"..tind].gui , 8)
-		gui.set_texture(elems["tagcolorsdelete"..tind].gui, "srcimg")
-		gui.play_flipbook(elems["tagcolorsdelete"..tind].gui, "rem")
-	end
-		yoff=yoff+1
-
-		--move colors
-		elems["moveback"..tind]={}
-		elems["moveback"..tind].gui = gui.new_box_node(vmath.vector3( 80*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3(guiscale*60,guiscale*30,0))
-		gui.set_pivot(elems["moveback"..tind].gui, gui.PIVOT_NW)
-		gui.set_color(elems["moveback"..tind].gui , vmath.vector3(.1,.1,.1))
-
-		elems["moveup"..tind]={}
-		elems["moveup"..tind].gui = gui.new_box_node(vmath.vector3( 80*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3(guiscale*30,guiscale*30,0))
-		gui.set_pivot(elems["moveup"..tind].gui, gui.PIVOT_NW)
-		gui.set_texture(elems["moveup"..tind].gui, "srcimg")
-		gui.play_flipbook(elems["moveup"..tind].gui, "collapse")
-		elems["moveup"..tind].binding="tagcolors"
-		elems["moveup"..tind].binding2=tind
-		elems["moveup"..tind].operation="up"
-		
-		elems["movedown"..tind]={}
-		elems["movedown"..tind].gui = gui.new_box_node(vmath.vector3( 110*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3(guiscale*30,guiscale*30,0))
-		gui.set_pivot(elems["movedown"..tind].gui, gui.PIVOT_NW)
-		gui.set_texture(elems["movedown"..tind].gui, "srcimg")
-		gui.play_flipbook(elems["movedown"..tind].gui, "expand")
-		elems["movedown"..tind].binding="tagcolors"
-		elems["movedown"..tind].binding2=tind
-		elems["movedown"..tind].operation="down"
-
-		--color modes.
-		
-		elems["modeback"..tind]={}
-		elems["modeback"..tind].gui=gui.new_box_node(vmath.vector3( 160*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3(guiscale*300,guiscale*30,0))
-		gui.set_pivot(elems["modeback"..tind].gui, gui.PIVOT_NW)
-		gui.set_color(elems["modeback"..tind].gui , vmath.vector3(.1,.1,.1))
-		elems["modeback"..tind].binding="tagcolors"
-		elems["modeback"..tind].binding2=tind
-		elems["modeback"..tind].operation="swapmode"
-
-		
-		tdat.mode=tdat.mode or "begins with"
-		elems["\tmode"..tind]={}
-		elems["\tmode"..tind].gui=gui.new_text_node(vmath.vector3( 160*guiscale, programdata.height-(yoff*40*guiscale),0  ), "mode:"..tostring(tdat.mode))
-		gui.set_pivot(elems["\tmode"..tind].gui, gui.PIVOT_NW)
-		gui.set_font(elems["\tmode"..tind].gui, "sysoneandhalf")
-
-		
-		
-		yoff=yoff+.0
-
-
-	
-		for _,v in pairs({"t","b"}) do
-			yoff=yoff+.75
-			if programdata.height-(yoff*40*guiscale) <0 then break end
-			elems["deftag"..v.."bg"..tind]={}
-			elems["deftag"..v.."bg"..tind].gui = gui.new_box_node(vmath.vector3( 80*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*180 , guiscale*30 , 0    ))
-			gui.set_pivot(elems["deftag"..v.."bg"..tind].gui , 8)
-			gui.set_color(elems["deftag"..v.."bg"..tind].gui , vmath.vector3(.1,.1,.1))
-			elems["\tdeftag"..v..tind]={}
-			if v=="t" then
-				elems["\tdeftag"..v..tind].gui = gui.new_text_node(vmath.vector3( 80*guiscale, programdata.height-(yoff*40*guiscale),0  ), "Text:")
-			else
-				elems["\tdeftag"..v..tind].gui = gui.new_text_node(vmath.vector3( 80*guiscale, programdata.height-(yoff*40*guiscale),0  ), "Background:")
-			end
-			gui.set_pivot(elems["\tdeftag"..v..tind].gui , 8)
-			gui.set_font(elems["\tdeftag"..v..tind].gui, "sysoneandhalf")
-			gui.set_scale(elems["\tdeftag"..v..tind].gui, vmath.vector3(guiscale,guiscale,0))
-			--gui.set_color(elems["\tdeftag"..v].gui , vmath.vector3(dtc.t[1],dtc.t[2], dtc.t[3]))
-			local xo=10*guiscale
-
-			
-			for i in pairs(config.defaulttagcolors.t) do -- 1 = r , 2 = g, 3 = b
-				if not (yoff<=0) then 
-				elems["deftag"..v..i.."bg"..tind]={}
-				elems["deftag"..v..i.."bg"..tind].gui=gui.new_box_node(vmath.vector3( xo+260*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*160 , guiscale*30 , 0    ))
-				gui.set_pivot(elems["deftag"..v..i.."bg"..tind].gui , 8)
-				gui.set_color(elems["deftag"..v..i.."bg"..tind].gui , vmath.vector3(.1,.1,.1))
-
-				elems["default"..v.."tagcolors"..i.."add"..tind]={}	
-				elems["default"..v.."tagcolors"..i.."add"..tind].binding="tagcolors"
-				elems["default"..v.."tagcolors"..i.."add"..tind].binding2=tind
-				elems["default"..v.."tagcolors"..i.."add"..tind].binding3=v
-				elems["default"..v.."tagcolors"..i.."add"..tind].binding4=i
-				elems["default"..v.."tagcolors"..i.."add"..tind].operation="add"
-				elems["default"..v.."tagcolors"..i.."add"..tind].amount=.05
-				elems["default"..v.."tagcolors"..i.."add"..tind].gui = gui.new_box_node(vmath.vector3( xo+260*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*30 , guiscale*30 , 0    ))
-				gui.set_pivot(elems["default"..v.."tagcolors"..i.."add"..tind].gui , 8)
-				gui.set_texture(elems["default"..v.."tagcolors"..i.."add"..tind].gui, "srcimg")
-				gui.play_flipbook(elems["default"..v.."tagcolors"..i.."add"..tind].gui, "add")
-
-				elems["default"..v.."tagcolors"..i.."sub"..tind]={}	
-				elems["default"..v.."tagcolors"..i.."sub"..tind].binding="tagcolors"
-				elems["default"..v.."tagcolors"..i.."sub"..tind].binding2=tind
-				elems["default"..v.."tagcolors"..i.."sub"..tind].binding3=v
-				elems["default"..v.."tagcolors"..i.."sub"..tind].binding4=i
-				elems["default"..v.."tagcolors"..i.."sub"..tind].operation="sub"
-				elems["default"..v.."tagcolors"..i.."sub"..tind].amount=.05
-				elems["default"..v.."tagcolors"..i.."sub"..tind].gui = gui.new_box_node(vmath.vector3( xo+380*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*30 , guiscale*30 , 0    ))
-				gui.set_pivot(elems["default"..v.."tagcolors"..i.."sub"..tind].gui , 8)
-				gui.set_texture(elems["default"..v.."tagcolors"..i.."sub"..tind].gui, "srcimg")
-				gui.play_flipbook(elems["default"..v.."tagcolors"..i.."sub"..tind].gui, "sub")
-
-				elems["\tdeftag"..v..i.."bg"..tind]={}
-				elems["\tdeftag"..v..i.."bg"..tind].gui = gui.new_text_node(vmath.vector3( xo+300*guiscale, programdata.height-(yoff*40*guiscale),0  ), math.floor( 100* config.tagcolors[tind][v][i] +.49)/100 )
-				gui.set_pivot(elems["\tdeftag"..v..i.."bg"..tind].gui , 8)
-				gui.set_font(elems["\tdeftag"..v..i.."bg"..tind].gui, "sysoneandhalf")
-				gui.set_scale(elems["\tdeftag"..v..i.."bg"..tind].gui, vmath.vector3(guiscale,guiscale,0))
-				--gui.set_color(elems["\tdeftag"..v..i.."bg"].gui , vmath.vector3(dtc[v][1],dtc[v][2], dtc[v][3]))
-				xo=xo+40*guiscale*4+10*guiscale
-				end
-			end
-		end
-	end
-	
-	yoff=yoff+.75
-	if not (yoff<=0) then 
-	elems["addctagbg"]={gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*40 , guiscale*40 , 0    ))  } 
-	elems["addctagbg"].binding="tagcolors"
-	elems["addctagbg"].operation="createtable"
-	elems["addctagbg"].amount= { b={0,0,0} , t={1,1,1} , string=""   }
-	gui.set_pivot(elems["addctagbg"].gui , 8)
-	gui.set_color(elems["addctagbg"].gui, vmath.vector3(.1,.1,.1))
-	
-	elems["addctagbut"]={gui = gui.new_box_node(vmath.vector3( 40*guiscale, programdata.height-(yoff*40*guiscale),0  ), vmath.vector3( guiscale*40 , guiscale*40 , 0    ))}
-	gui.set_pivot(elems["addctagbut"].gui , 8)
-	gui.set_texture(elems["addctagbut"].gui, "srcimg")
-	gui.play_flipbook(elems["addctagbut"].gui, "add")
-	end
-
 	
 	
 	::skip::
@@ -756,6 +672,24 @@ end
 function on_input(self, action_id, action)
 	if programdata.screen~="settings" then return end
 
+
+	if action_id==hash"m1" and action.pressed then
+		typebinding=nil
+	end
+	if action_id==hash"text" and typebinding then
+		typebinding(action.text)
+	end
+	if action_id==hash"delete" and action.repeated and typebinding then
+		typebinding("")
+	end
+	
+	for i=1,#guinodes do
+		if guinodes[i].input then
+			guinodes[i].input(guinodes[i],action_id,action)
+		end
+	end
+
+	
 	if action_id==hash"m1" and action.pressed then
 		for i,v in pairs(elems) do
 			if v.binding then --only do this if it has a binding.

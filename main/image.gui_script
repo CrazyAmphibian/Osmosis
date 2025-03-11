@@ -16,6 +16,7 @@ if nosave then goto force end
 		if editstring==to then return end
 
 		if editstring=="\raddtag" then
+			--lasttagsuggestion=nil
 			if tempstring ~="" and not tempstring:isin(tags[programdata.selectedimage]) then  
 				table.insert(tags[programdata.selectedimage], tempstring)
 				writetag(programdata.selectedimage , tags[programdata.selectedimage])
@@ -77,24 +78,24 @@ function update(self, dt)
 	
 	if  programdata.screen ~="image" then programdata.fullimagemode=false donotdelete=false programdata.imgys=0 programdata.imgxs=0 programdata.imgz=1 programdata.tagscroll=0 goto skip end
 	if not programdata.selectedimage then goto skip end
-	if not images[programdata.selectedimage].height or not images[programdata.selectedimage].width then --idk why that happens. it does? when you scroll a lot with arrows. ooh, because it doesn't load extra while not in gallery.
+	if not imagedata[programdata.selectedimage].height or not imagedata[programdata.selectedimage].width then --idk why that happens. it does? when you scroll a lot with arrows. ooh, because it doesn't load extra while not in gallery.
 		print("WARNING: IMAGE "..programdata.selectedimage.."HAS NO WIDTH OR HEIGHT.")
 		local f=io.open("images/"..programdata.selectedimage ,"rb") --reload the file data.
 		local td = f:read("*a")
 		local i =  image.load( td)  
-		images[programdata.selectedimage] = {  width=i.width , height=i.height , data=td } 
+		imagedata[programdata.selectedimage] = {  width=i.width , height=i.height , data=td } 
 		f:close()
 	end 
-	local imgscale = math.min( (programdata.width-config.guiscale*150-config.galleryimagepadding*programdata.width*2)/(images[programdata.selectedimage].width or 1) ,
-			(programdata.height-config.galleryimagepadding*programdata.height*2-config.guiscale*10)/(images[programdata.selectedimage].height or 1)  )	
+	local imgscale = math.min( (programdata.width-config.guiscale*150-config.galleryimagepadding*programdata.width*2)/(imagedata[programdata.selectedimage].width or 1) ,
+	(programdata.height-config.galleryimagepadding*programdata.height*2-config.guiscale*45)/(imagedata[programdata.selectedimage].height or 1)  )	
 	--imageobjects["image"] = gui.new_box_node(vmath.vector3(config.guiscale*150+config.galleryimagepadding*programdata.width ,programdata.height-config.galleryimagepadding*programdata.height,0), vmath.vector3(programdata.width-config.guiscale*150-config.galleryimagepadding*programdata.width*2, 
-	--images[programdata.selectedimage].height*(programdata.width-config.guiscale*150-config.galleryimagepadding*programdata.height*2 )/images[programdata.selectedimage].width ,0 ) )
+	--imagedata[programdata.selectedimage].height*(programdata.width-config.guiscale*150-config.galleryimagepadding*programdata.height*2 )/imagedata[programdata.selectedimage].width ,0 ) )
 	if not donotdelete then
-	imageobjects["image"] = gui.new_box_node(vmath.vector3(config.guiscale*150+config.galleryimagepadding*programdata.width ,programdata.height-config.galleryimagepadding*programdata.height-config.guiscale*10,0), vmath.vector3(images[programdata.selectedimage].width*imgscale,images[programdata.selectedimage].height*imgscale,0) )
+		imageobjects["image"] = gui.new_box_node(vmath.vector3(config.guiscale*150+config.galleryimagepadding*programdata.width ,programdata.height-config.galleryimagepadding*programdata.height-config.guiscale*15,0), vmath.vector3(imagedata[programdata.selectedimage].width*imgscale,imagedata[programdata.selectedimage].height*imgscale,0) )
 	end
 	if imageobjects["image"] then 
-		gui.set_size(imageobjects["image"],  vmath.vector3(images[programdata.selectedimage].width*imgscale,images[programdata.selectedimage].height*imgscale,0)) 
-		gui.set_position(imageobjects["image"], vmath.vector3(config.guiscale*150+config.galleryimagepadding*programdata.width ,programdata.height-config.galleryimagepadding*programdata.height-config.guiscale*10,0))
+		gui.set_size(imageobjects["image"],  vmath.vector3(imagedata[programdata.selectedimage].width*imgscale,imagedata[programdata.selectedimage].height*imgscale,0)) 
+		gui.set_position(imageobjects["image"], vmath.vector3(config.guiscale*150+config.galleryimagepadding*programdata.width ,programdata.height-config.galleryimagepadding*programdata.height-config.guiscale*15,0))
 	end
 	
 	imageobjects["ttext"] = gui.new_text_node(pos, text)
@@ -108,25 +109,23 @@ function update(self, dt)
 	local mode=0
 	if editstring =="\raddtag" then
 		mode=1
-		tabletoparse=programdata.tagcount
+		--tabletoparse=programdata.tagcount
 
 		tabletoparse=ordertagsuggestions(tempstring,tags[programdata.selectedimage],tags[programdata.selectedimage]) -- so that the numbers are in an order instead of whatever memory is
---[[
-		for i,v in pairs(programdata.tagcount) do --doing this has made me see just how unstable this code is. prone to breaking. a lot.
-			local added
-			for i2,v2 in pairs(tabletoparse) do
-				
-				if programdata.tagcount[v2]<v then
-					
-					table.insert(tabletoparse, i2 , i)
-					added=true
-					break
+		for i=#tabletoparse,1,-1 do
+			local v=tabletoparse[i]
+			if not (config.fuzzysearch and v:fuzzysearch(tempstring) or v:search(tempstring)) then
+				table.remove(tabletoparse,i)
+			else
+				for i2=1,#tags[programdata.selectedimage] do
+					if tags[programdata.selectedimage][i2]==v then
+						table.remove(tabletoparse,i)
+					end
 				end
-				
 			end
-		
-			if not added then table.insert(tabletoparse, i) end
-		end]]
+
+		end
+
 		
 		
 	elseif not programdata.fullimagemode then
@@ -135,17 +134,9 @@ function update(self, dt)
 
 	
 	for i,v in pairs(tabletoparse or {}) do
-		if mode==1 then 
-
-			--if not cif(config.fuzzysearch,v:fuzzysearch(tempstring),v:search(tempstring)) then goto next end
-			
-			--local f
-			--[[
-			for _,t in pairs(tags[programdata.selectedimage]) do
-				if v==t then goto next end --prevent existing tags from showing up
-			end
-			]]
-		end
+		--if mode==1 then 
+--
+--		end
 		if yoffset<=0-programdata.height-programdata.tagscroll then goto next end --using break doesn't pair well with this sometimes for whatever reason.
 		local i2=v
 		if mode==1 then --[[i,v = v,i]] end
@@ -153,11 +144,11 @@ function update(self, dt)
 		imageobjects["b\r"..i2]=gui.new_box_node(vmath.vector3(0,programdata.height+yoffset+programdata.tagscroll,0), vmath.vector3(1,1,0) )
 		gui.set_pivot(imageobjects["b\r"..i2], 8)
 		if mode ==1 then a=programdata.tagcount[v].." " --[[i.." "]] else a="" end
-		imageobjects["t\r"..i2]=gui.new_text_node(vmath.vector3(0,programdata.height+yoffset+programdata.tagscroll,0),  a ..v)
+		imageobjects["t\r"..i2]=gui.new_text_node(vmath.vector3(0,programdata.height+yoffset+programdata.tagscroll,0),  a ..v:breakup() )
 		gui.set_pivot(imageobjects["t\r"..i2], 8)
 		gui.set_size(imageobjects["t\r"..i2], vmath.vector3( config.guiscale*150/config.guiscale ,0,0 ) )
 		gui.set_line_break(imageobjects["t\r"..i2], true)
-		gui.set_font(imageobjects["t\r"..i2], "system_font")
+		gui.set_font(imageobjects["t\r"..i2], "sysstd")
 
 		local tc=gettagcolor(v)
 		--if mode ==1 then tc=gettagcolor(v:sub(3)) end
@@ -219,41 +210,57 @@ function update(self, dt)
 	gui.set_color(imageobjects["t\rentry"], vmath.vector3(tc.t[1] , tc.t[2] , tc.t[3] ))
 	gui.move_above(imageobjects["t\rentry"], nil)--imageobjects["entrybox"])
 	end
+	
+	imageobjects["t\bsimilarbytags"]=gui.new_box_node( vmath.vector3(config.guiscale*290,config.guiscale*20,0), config.guiscale*vmath.vector3(200,30 ,0))
+	gui.set_color(imageobjects["t\bsimilarbytags"], vmath.vector3(.2))
+	imageobjects["b\bsimilarbytags"]=gui.new_text_node( vmath.vector3(config.guiscale*290,config.guiscale*20,0), "find similar by tags")
 
+	imageobjects["t\bcopyimage"]=gui.new_box_node( vmath.vector3(config.guiscale*500,config.guiscale*20,0), config.guiscale*vmath.vector3(200,30 ,0))
+	gui.set_color(imageobjects["t\bcopyimage"], vmath.vector3(.2))
+	imageobjects["b\bcopyimage"]=gui.new_text_node( vmath.vector3(config.guiscale*500,config.guiscale*20,0), "copy image")
+	
+	
 	end
 	
 
 	::imageonly::
 
 	if not donotdelete then
-		local tex =fullimagedata[programdata.selectedimage] or image.load(images[programdata.selectedimage].data  )
-		if config.keepimagesloaded then fullimagedata[programdata.selectedimage]=tex end
+		--local tex =fullimagedata[programdata.selectedimage] or image.load(imagedata[programdata.selectedimage].data  )
+		--if config.keepimagesloaded then fullimagedata[programdata.selectedimage]=tex end
+
+		local f=io.open("images/"..programdata.selectedimage,"rb")
+		if not f then goto huh end
+		local tex=image.load(f:read("*all"))
+		if not tex then goto huh end
+		
 		gui.new_texture("mimg", tex.width, tex.height, tex.type, tex.buffer)
 		mimg=true
 		gui.set_texture_data("mimg", tex.width, tex.height, tex.type, tex.buffer) 
 		gui.set_texture(imageobjects["image"], "mimg" ) 
 		donotdelete=true --this saves frames, probably
+		::huh::
 	end
 	
 	
 	if programdata.fullimagemode then
 		--imageobjects["image"]
-		gui.set_size(imageobjects["image"], vmath.vector3( images[programdata.selectedimage].width*programdata.imgz , images[programdata.selectedimage].height*programdata.imgz , 0  ))
+		gui.set_size(imageobjects["image"], vmath.vector3( imagedata[programdata.selectedimage].width*programdata.imgz , imagedata[programdata.selectedimage].height*programdata.imgz , 0  ))
 		gui.set_pivot(imageobjects["image"], gui.PIVOT_CENTER)
-		local xmargins=images[programdata.selectedimage].width-programdata.width 
-		local ymargins=images[programdata.selectedimage].height-programdata.height 
+		local xmargins=imagedata[programdata.selectedimage].width-programdata.width 
+		local ymargins=imagedata[programdata.selectedimage].height-programdata.height 
 	--	gui.set_position(imageobjects["image"], vmath.vector3(programdata.imgxs-xmargins/2 ,programdata.height-programdata.imgys+ymargins/2,0) )
 	gui.set_position(imageobjects["image"], vmath.vector3(programdata.width/2-programdata.imgxs*programdata.imgz,programdata.height/2 -programdata.imgys*programdata.imgz,0))
 	
-		--print(programdata.imgxs-images[programdata.selectedimage].width)
+		--print(programdata.imgxs-imagedata[programdata.selectedimage].width)
 		local harea=programdata.width-config.guiscale*15
 		imageobjects["hscrollback"]=gui.new_box_node(vmath.vector3(0,0,0), vmath.vector3(harea,config.guiscale*15,0))
 		gui.set_pivot(imageobjects["hscrollback"], gui.PIVOT_SW)
 		gui.set_color(imageobjects["hscrollback"], vmath.vector3(.25,.25,.25))
 		local hp=0
 		
-		hp=programdata.width/2-programdata.imgxs*programdata.imgz+images[programdata.selectedimage].width*programdata.imgz/2 --pos of right side
-		hp=hp/(programdata.width+images[programdata.selectedimage].width*programdata.imgz)
+		hp=programdata.width/2-programdata.imgxs*programdata.imgz+imagedata[programdata.selectedimage].width*programdata.imgz/2 --pos of right side
+		hp=hp/(programdata.width+imagedata[programdata.selectedimage].width*programdata.imgz)
 		hp=-((hp*2)-1)
 	--	print(hp)
 		
@@ -267,8 +274,8 @@ function update(self, dt)
 		gui.set_color(imageobjects["vscrollback"], vmath.vector3(.25,.25,.25))
 
 		local vp=0
-		vp=programdata.height/2-programdata.imgys*programdata.imgz+images[programdata.selectedimage].height*programdata.imgz/2 --pos of right side
-		vp=vp/(programdata.height+images[programdata.selectedimage].height*programdata.imgz)
+		vp=programdata.height/2-programdata.imgys*programdata.imgz+imagedata[programdata.selectedimage].height*programdata.imgz/2 --pos of right side
+		vp=vp/(programdata.height+imagedata[programdata.selectedimage].height*programdata.imgz)
 		vp=-((vp*2)-1)
 		--print(vp)
 		
@@ -345,7 +352,7 @@ function on_input(self, action_id, action)
 				--print(delta)
 			elseif programdata.fullimagemode then
 				if programdata.shift then
-					programdata.imgxs=programdata.imgxs-1*config.scrollsen*images[programdata.selectedimage].width*delta
+					programdata.imgxs=programdata.imgxs-1*config.scrollsen*imagedata[programdata.selectedimage].width*delta
 				elseif programdata.control then
 					local last=programdata.imgz
 					programdata.imgz=programdata.imgz*(1.05) --don't even try to add sensitivity changes. it's just a mess.
@@ -353,7 +360,7 @@ function on_input(self, action_id, action)
 					--programdata.imgys=programdata.imgys *programdata.imgz/last --this funky equation took a bit to figure out...
 					
 				else
-					programdata.imgys=programdata.imgys+1*config.scrollsen*images[programdata.selectedimage].height*delta
+					programdata.imgys=programdata.imgys+1*config.scrollsen*imagedata[programdata.selectedimage].height*delta
 				end
 			end
 			
@@ -362,14 +369,14 @@ function on_input(self, action_id, action)
 				programdata.tagscroll=programdata.tagscroll+delta*2*config.scrollsen*config.guiscale*programdata.height
 			elseif programdata.fullimagemode then
 				if programdata.shift then
-					programdata.imgxs=programdata.imgxs+1*config.scrollsen*images[programdata.selectedimage].width*delta
+					programdata.imgxs=programdata.imgxs+1*config.scrollsen*imagedata[programdata.selectedimage].width*delta
 				elseif programdata.control then
 					local last=programdata.imgz
 					programdata.imgz=programdata.imgz/(1.05)
 				--	programdata.imgxs=programdata.imgxs *programdata.imgz/last
 				--	programdata.imgys=programdata.imgys *programdata.imgz/last 
 				else
-					programdata.imgys=programdata.imgys-1*config.scrollsen*images[programdata.selectedimage].height*delta
+					programdata.imgys=programdata.imgys-1*config.scrollsen*imagedata[programdata.selectedimage].height*delta
 				end
 			end
 
@@ -382,6 +389,7 @@ function on_input(self, action_id, action)
 					tempstring=""
 					transfer(nil)
 				end
+			
 			elseif  editstring=="\raddtag"  and action.pressed then
 				local match
 				for i in pairs(imageobjects) do
@@ -403,6 +411,14 @@ function on_input(self, action_id, action)
 					tempstring=""
 					transfer(nil)
 				end
+			elseif imageobjects["t\bsimilarbytags"] and gui.pick_node(imageobjects["t\bsimilarbytags"], action.x, action.y) and action.pressed then
+				
+				programdata.displayorder="tagsimilarity"
+				programdata.displayordermeta.target=programdata.selectedimage
+				programdata.galleryscroll=0.0
+				--programdata.screen="gallery"
+			elseif imageobjects["t\bcopyimage"] and gui.pick_node(imageobjects["t\bcopyimage"], action.x, action.y) and action.pressed then
+				copyfile("images/"..programdata.selectedimage , "copied/"..programdata.selectedimage)
 			elseif action.x >= config.guiscale*150 and not programdata.fullimagemode and action.pressed then --swap when clicked
 --				local ims , ips = gui.get_size(imageobjects["image"]) , gui.get_position(imageobjects["image"])
 				if gui.pick_node(imageobjects["image"], action.x, action.y) then 
@@ -418,7 +434,7 @@ function on_input(self, action_id, action)
 						x=x/programdata.width --now is 0 to 1
 						x=x*-1+1
 						--when 0: it has to be all the way to the right
-						x=(1-x)*(programdata.width/(2*programdata.imgz)+images[programdata.selectedimage].width/2)    -(x)*(images[programdata.selectedimage].width/2+programdata.width/(2*programdata.imgz))
+						x=(1-x)*(programdata.width/(2*programdata.imgz)+imagedata[programdata.selectedimage].width/2)    -(x)*(imagedata[programdata.selectedimage].width/2+programdata.width/(2*programdata.imgz))
 						--i cannot fathom why the application width is bieng divided by the zoom level. but it makes it work.
 						x=x
 						programdata.imgxs=x
@@ -428,7 +444,7 @@ function on_input(self, action_id, action)
 						y=y*programdata.height/(programdata.height-15*config.guiscale)
 						y=y/programdata.height --now is 0 to 1
 						y=y*-1+1
-						y=(1-y)*(programdata.height/(2*programdata.imgz)+images[programdata.selectedimage].height/2)    -(y)*(images[programdata.selectedimage].height/2+programdata.height/(2*programdata.imgz))
+						y=(1-y)*(programdata.height/(2*programdata.imgz)+imagedata[programdata.selectedimage].height/2)    -(y)*(imagedata[programdata.selectedimage].height/2+programdata.height/(2*programdata.imgz))
 	
 						y=y
 						programdata.imgys=y
@@ -498,7 +514,8 @@ function on_input(self, action_id, action)
 	end
 
 	if not programdata.sidebar and not programdata.fullimagemode then --this shit doesn't work. why?
-		if action_id==hash"left" and (action.pressed or action.repeated) then 
+	if action_id==hash"left" and (action.pressed or action.repeated) then 
+		lasttagsuggestion=nil
 			local num
 			for i,v in pairs(imageorder) do
 				if v==programdata.selectedimage then
@@ -515,6 +532,7 @@ function on_input(self, action_id, action)
 		end
 		
 		if action_id==hash"right" and (action.pressed or action.repeated)  then
+			lasttagsuggestion=nil
 			local num
 			for i,v in pairs(imageorder) do
 				if v==programdata.selectedimage then

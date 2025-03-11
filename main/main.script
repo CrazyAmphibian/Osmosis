@@ -1,12 +1,29 @@
 	config={}
-	images={}
+	--images={}
 	programdata={}
 	showing={}
 	tags={}
 	filters={}
-	breakingcharacters={" ","",":","|"}
+	breakingcharacters={" ","","_","-","~","`",":",";","\"","'","/","\\","|",".",",","!","@","#","$","%","^","&","*","(",")","[","]","{","}","=","+"}
+	addzwsto={"_","%-","%.",",",":","%(","%)",";","\"","'","/","|","\\","%[","]","{","}"} -- 
 	clipboard={}
+
+	imagedata={}
+
+
+_ZWS="\xe2\x80\x8b"
 	
+
+function string.breakup(s)
+	--print("B",#s)
+	for i=1,#addzwsto do
+		s=s:gsub(addzwsto[i],_ZWS..addzwsto[i].._ZWS)
+	end
+	--print("A",#s)
+	return s
+end
+
+		
 local t=0
 	
 programdata.width , programdata.height = window.get_size()
@@ -80,12 +97,15 @@ function rename(original,new) --handles image and tags. orgiginal includes exten
 
 
 	tags[new]=tags[original]
-	images[new]=images[original]
+	--images[new]=images[original]
 	fullimagedata[new]=fullimagedata[original]
 	tags[original]=nil
-	images[original]=nil
+	--images[original]=nil
 	fullimagedata[original]=nil
 	programdata.selectedimage=new
+
+
+	imagedata[new]=imagedata[original]
 	
 	if OS=="Windows" then
 		local str="move /Y \"images\\"..original.."\" \"images\\"..new.."\""  --image
@@ -358,9 +378,9 @@ function string.tohex(str)
 end
 
 
-function hotloadimage(image) --only returns image size and nothing else. about 10x+ faster than image.load, but does not load all pixel data.
+function hotloadimage(imagefn) --only returns image size and nothing else. about 10x+ faster than image.load, but does not load all pixel data.
 local out={width=0,height=0}
-local f=io.open("images/"..image ,"rb")
+local f=io.open("images/"..imagefn ,"rb")
 local rd=""
 if f then
 	rd=f:read("*all")
@@ -384,6 +404,11 @@ rd=rd or ""
 			if rd:sub(i,i)=="\255" and rd:sub(i+1,i+1):byte()>=192 and rd:sub(i+1,i+1):byte()<=207  then --0xff followed by 0xc0-0xcf, though only c0 and c2 are common.
 				local h=tonumber(rd:sub(i+5,i+6):tohex(),16)
 				local w=tonumber(rd:sub(i+7,i+8):tohex(),16)
+				
+				--print(h,w)
+				out.height=h out.width=w
+				do break end
+				
 				if h>out.height and w>out.width then--sometimes there are multiple blocks. use the biggest, i think?
 					out.height=h out.width=w --only set both at a time because it messes up sometimes, suprise suprise.
 				end
@@ -400,11 +425,13 @@ rd=rd or ""
 end
 
 
-
+lasttagsuggestion=nil
 
 function ordertagsuggestions(textinput,taglist,excludelist)
+	if lasttagsuggestion then --[[print("discard")]] return lasttagsuggestion end
+	--print("draw")
 	local otab={}
-	if _LASTFILTEROUTPUT and _NOINPUTFRAME then return _LASTFILTEROUTPUT end --to save some computation time, as my (very efficent) code does this EVERY FRAME.
+	--if _LASTFILTEROUTPUT and _NOINPUTFRAME then return _LASTFILTEROUTPUT end --to save some computation time, as my (very efficent) code does this EVERY FRAME.
 	--local st=os.clock()
 	local sorted={} --first sort the tags by count.
 	if not taglist then --well, assuming there's no other tags present
@@ -466,19 +493,7 @@ function ordertagsuggestions(textinput,taglist,excludelist)
 			end
 			if not added then sorted[#sorted+1]=i end
 		end 
-		--[[
-		w=io.open("rankdump","w")
-		k=""
-		for i,v in pairs(s2) do
-			if (v-programdata.tagcount[i])~=0 then
-				k=k..i.."\t"..(v-programdata.tagcount[i]).."\n"
-			end
-		end
-		w:write(k)
-		w:flush()
-		w:close()
-		w,k=nil,nil	
-		]]
+
 	end
 
 
@@ -486,16 +501,18 @@ function ordertagsuggestions(textinput,taglist,excludelist)
 	for i=1,#sorted do --then, search for it.
 		local v=sorted[i]
 		local notexclude=true
-		for w=1,#(excludelist or {}) do if excludelist[w]==v then  notexclude=false break end end
-		if notexclude  and (config.fuzzysearch and v:fuzzysearch(textinput) or v:search(textinput)) then
-			otab[#otab+1]=v
-		end
+		--for w=1,#(excludelist or {}) do if excludelist[w]==v then  notexclude=false break end end
+		--if notexclude  and (config.fuzzysearch and v:fuzzysearch(textinput) or v:search(textinput)) then
+		--	otab[#otab+1]=v
+		--end
+		otab[#otab+1]=v
 	end
 	--print("filtering:",os.clock()-st)
 
 
 	
-	_LASTFILTEROUTPUT=otab
+	--_LASTFILTEROUTPUT=otab
+	lasttagsuggestion=otab
 	return otab
 end
 
@@ -507,15 +524,280 @@ end
 --specialchars["zws"]="​" --this doesn't appear correctly. probly the font.
 
 
+galleryloadedtextures={}
+
+
+
+function creategalleryimageorder()
+	filterimages()
+	imageorder={}
+
+
+
+	--programdata.displayorder="memory"
+	--programdata.displayordermeta={}
+	if programdata.displayorder=="memory" then
+		--print("MEM")
+		for i in pairs(showing)	do
+			imageorder[#imageorder+1]=i
+		end
+	elseif programdata.displayorder=="alphabet" then
+		for i in pairs(showing)	do
+			imageorder[#imageorder+1]=i
+		end
+		table.sort(imageorder,function(a,b) 
+			for i=1,math.max(#a,#b) do
+				ca,cb=string.byte(a:sub(i,i)) or 256,string.byte(b:sub(i,i)) or 256
+				if ca<cb then return true elseif ca>cb then return false end
+			end
+			return false
+		end)
+	elseif programdata.displayorder=="alphabetreverse" then
+		for i in pairs(showing)	do
+			imageorder[#imageorder+1]=i
+		end
+		table.sort(imageorder,function(a,b) 
+			for i=1,math.max(#a,#b) do
+				ca,cb=string.byte(a:sub(i,i)) or 256,string.byte(b:sub(i,i)) or 256
+				if ca>cb then return true elseif ca<cb then return false end
+			end
+			return false
+		end)
+		
+	elseif programdata.displayorder=="tagsimilarity" then
+		--print("TS")
+		local sourceimage=programdata.displayordermeta.target
+		local st=tags[sourceimage]
+
+		local tot={}
+
+
+		for i in pairs(showing)	do
+			local v=tags[i]
+		--end
+		
+		--for i,v in pairs(tags) do
+			local likeness=0
+
+			for i=1,#st do 
+				local tag=st[i]
+				local added=false
+				for i2=1,#v do
+					if v[i2]==tag then
+						added=true
+						likeness=likeness+1 --+1 for every tag had. -1 for every tag not had.
+						break
+					end
+				end
+				if not added then likeness=likeness-1 end
+			end
+
+			tot[#tot+1]={i,likeness/#st}
+			
+		end
+
+		table.sort(tot,function (a, b)
+			return a[2]>b[2]
+		end)
+
+		for i=1,#tot do
+			imageorder[i]=tot[i][1]
+		end
+		
+		
+	end
+
+end
+
+
+
+function pushgallerytexture(imagename,type,texture)
+	--print("ALLOCATION",imagename,type)
+	local _LIMIT=64
+
+	local FIND
+
+	for i=1,math.min(_LIMIT,#galleryloadedtextures) do
+		if galleryloadedtextures[i][1]==imagename and galleryloadedtextures[i][2]==type and galleryloadedtextures[i][3]==texture then
+			FIND=i
+			break
+		end
+	end
+	
+	if not FIND then
+		table.insert(galleryloadedtextures,1,{imagename,type,texture})
+		FIND=1
+	end
+
+	local exceeding=#galleryloadedtextures-_LIMIT
+	if exceeding  >0 then
+		
+		for i=math.min(_LIMIT,#galleryloadedtextures),1,-1 do --prioritize unrefrenced images
+			if exceeding<=0 then break end
+			local _MARKEDTEXDATA=galleryloadedtextures[i]
+			
+			local imgid=_MARKEDTEXDATA[1]
+			if not imagedata[imgid].visible then
+				gui.delete_texture(_MARKEDTEXDATA[3])
+				imagedata[imgid][ _MARKEDTEXDATA[2]=="IMAGE" and "texture" or "thumbnail"] =false
+				table.remove(galleryloadedtextures,i)
+				exceeding=exceeding-1
+			end
+				
+			
+		end
+		
+		for _MARKED= #galleryloadedtextures,_LIMIT+1,-1 do
+			if exceeding<=0 then break end
+			_MARKEDTEXDATA=galleryloadedtextures[_MARKED]
+			--if #galleryloadedtextures>=_LIMIT then
+			gui.delete_texture(_MARKEDTEXDATA[3])
+
+			--print("CLEAR",_MARKEDTEXDATA[1])
+			--imagedata[imagename].texture=nil
+
+			imagedata[_MARKEDTEXDATA[1]][ _MARKEDTEXDATA[2]=="IMAGE" and "texture" or "thumbnail"] =false
+
+			--print("DEALLOCATION",_MARKEDTEXDATA[1],_MARKEDTEXDATA[2])
+			galleryloadedtextures[_MARKED]=nil
+			--end
+			exceeding=exceeding-1
+		end
+		
+	end
+	
+
+
+	return FIND
+end
+
+
+function generatethumbnailtexture(imagename)
+	--local start1=os.clock()
+	
+	imagedata[imagename]=imagedata[imagename] or {}
+	local imgdat=imagedata[imagename]
+	if imagedata[imagename].thumbnail then return imagedata[imagename].thumbnail end
+
+	
+	local nubuf
+	if not imgdat.thumbnailbuffer then
+	
+	local f,e=io.open("images/"..imagename ,"rb")
+	if not f then print(imagename,e) imgdat.error=true return end
+	local rawd=image.load(f:read("*a"))
+	f:close()
+	if not rawd then print(imagename,"LOAD FALIURE") imgdat.error=true return end
+
+	--config.thumbnailsize
+	
+	--local start2=os.clock()
+
+	imgdat.width=rawd.width
+	imgdat.height=rawd.height
+
+	local buffer={}
+	local width=1
+	if rawd.type==image.TYPE_RGB then width=3 end
+	if rawd.type==image.TYPE_RGBA then width=4 end
+	if rawd.type==image.TYPE_LUMINANCE then width=1 end
+	if rawd.type==image.TYPE_LUMINANCE_ALPHA then width=2 end
+
+	local reduce=math.ceil(math.max(imgdat.width,imgdat.height)/(config.thumbnailsize))
+	local nw,nh=math.floor(imgdat.width/reduce), math.floor(imgdat.height/reduce)
+
+	local ow=imgdat.width
+	
+	--print(imgdat.width,imgdat.height,nw,nh,reduce,config.thumbnailsize)
+	for h=0,nh-1 do
+		--h=h
+		for w=0,nw-1 do
+			--w=w
+			buffer[#buffer+1]=string.sub(rawd.buffer,(h*width*ow+w*width)*reduce+1,(h*width*ow+w*width)*reduce+width)
+		end
+	end
+
+	--local start3=os.clock()
+	nubuf=table.concat(buffer)
+
+	imgdat.thumbnailimagetype=rawd.type
+	imgdat.thumbnailw=nw
+	imgdat.thumbnailh=nh
+	else
+		nubuf=imgdat.thumbnailbuffer
+	end
+	
+	
+
+	imgdat.thumbnailbuffer=nubuf
+	
+	local tc= gui.new_texture("IMAGEP_"..imagename, imgdat.thumbnailw,imgdat.thumbnailh, imgdat.thumbnailimagetype, nubuf , false)
+	if tc==true then
+		--print("INITIALIZE",imagename)
+		--print("CREATE",imagename)
+		imgdat.thumbnail="IMAGEP_"..imagename
+		pushgallerytexture(imagename,"THUMBNAIL","IMAGEP_"..imagename)
+
+
+		--local start4=os.clock()
+
+		--print("IO",start2-start1,"RE",start3-start2,"TX",start4-start3,"TOTAL",start4-start1)
+		
+		return imgdat.thumbnail
+	end
+
+	
+end
+
+function generateimagetexture(imagename)
+	imagedata[imagename]=imagedata[imagename] or {}
+	local imgdat=imagedata[imagename]
+	if imgdat.texture then  return imgdat.texture end
+	
+	local f,e=io.open("images/"..imagename ,"rb")
+	if not f then print(imagename,e) imgdat.error=true return end
+	local rawd=image.load(f:read("*a"))
+	f:close()
+	if not rawd then print(imagename,"LOAD FALIURE") imgdat.error=true return end
+
+	imgdat.width=rawd.width
+	imgdat.height=rawd.height
+	
+	local tc= gui.new_texture("IMAGET_"..imagename, imgdat.width,imgdat.height, rawd.type, rawd.buffer, false)
+	if tc==true then
+		--print("INITIALIZE",imagename)
+		print("CREATE",imagename)
+		imgdat.texture="IMAGET_"..imagename
+		pushgallerytexture(imagename,"IMAGE","IMAGET_"..imagename)
+		return "IMAGET_"..imagename
+	end
+end
+
+function fetchsizeofimage(imagename)
+	imagedata[imagename]=imagedata[imagename] or {}
+	local imgdat=imagedata[imagename]
+	if imgdat.width then return imgdat.width,imgdat.height end
+	local d=hotloadimage(imagename)
+	if not d then print("DISCARDING "..imagename.." FROM POOL: UNABLE TO LOAD") imagedata[imagename]=nil tags[imagename]=nil  images[imagename]=nil showing[imagename]=nil creategalleryimageorder() return end
+	imgdat.width=d.width
+	imgdat.height=d.height
+	if d.width then return d.width,d.height end
+end
+
+
+
+
+
 
 function reload() --refreshes all images, tags, ect
 	config={}
-	images={}
+	--images={}
 	programdata={}
 	showing={}
 	tags={}
 	filters={}
 	fullimagedata={} --used for keeploaded
+	imagedata={} print("ALLDESTROY")
 	
 	local _,e = pcall(function() dofile("config") end)
 	if e then
@@ -529,23 +811,23 @@ function reload() --refreshes all images, tags, ect
 		end
 	end --again, idiot-proof the code if someone messes with it, or my code sucks.
 
-	config.tagindexchar=config.tagindexchar or ":" --tag seperators ie    year:2022
 	config.imagesperrow=	config.imagesperrow or 4 --images per row in the gallery view
 	config.galleryimagepadding=config.galleryimagepadding or .04 --buffer between images in the gallery as a proportion of screen space
 	config.guiscale = config.guiscale or 1 --scale of some GUI elements eg tags and settings
 	config.scrollsen=config.scrollsen or 1
 	config.tagcolors=config.tagcolors or {}
 	config.defaulttagcolors=config.defaulttagcolors or {t={1,1,1} , b={.1,.1,.1} }
-	config.loadnum=config.loadnum or 30
 	config.implications=config.implications or {}
-	config.keepimagesloaded=config.keepimagesloaded or false
 	config.hideimplications=config.hideimplications or {}
 	config.smartsearchstrength=config.smartsearchstrength or 1 -- mhm higher = less dependance on tag amount.
+	config.thumbnailsize=config.thumbnailsize or 128
 	local imagestor= getfiles("images")
 	for _,v in pairs(imagestor) do
 		if not ( v:sub(#v-3 ,#v  ):lower()==".png" or v:sub(#v-3 ,#v  ):lower()==".jpg" or v:sub(#v-4 ,#v  ):lower()==".jpeg"  ) then goto next end
-		images[v]={} 
+		--images[v]={} 
+		imagedata[v]={}
 
+		--[[
 		if false then --extreme slowness to start up.
 			local f=io.open("images/"..v ,"rb") --open in read binary mode, because windows sucks. 
 			local td = f:read("*a")
@@ -554,6 +836,7 @@ function reload() --refreshes all images, tags, ect
 			images[v] = {  width=i.width , height=i.height , data=td } --only keeping part of this in memory, preserve RAM, unlike last time, dipshit. the size is needed for spacing.
 			f:close()
 		end
+		]]
 		tags[v]={}
 		showing[v]=true
 		
@@ -562,7 +845,9 @@ function reload() --refreshes all images, tags, ect
 
 	local tagstor=getfiles("tags")
 	for _,v in pairs(tagstor) do
-		tags[v] = dofile("tags/"..v)
+		if imagedata[v] then
+			tags[v] = dofile("tags/"..v)
+		end
 	end
 
 	programdata.taglist={}
@@ -582,6 +867,8 @@ function reload() --refreshes all images, tags, ect
 	programdata.filterscroll=0
 	programdata.screen="gallery"
 	programdata.screenorder={  "gallery" , "image" , "settings" ,"implications", "tags"  }
+	programdata.displayorder="memory"
+	programdata.displayordermeta={}
 	programdata.debounce=true
 	programdata.fullimagemode=false
 	programdata.imgxs=0 -- scrolling for the full image view
@@ -594,20 +881,23 @@ function reload() --refreshes all images, tags, ect
 	programdata.imageorder={} --stores the order of images on the gallery.
 	writeconfigfile()
 	filters={type="and",tags={}}
-	
+	creategalleryimageorder()
 end
 
 
 
 function filterimages()
-
-	for i,v in pairs(images) do
+	--print("FILTER")
+	for i,v in pairs(tags) do
+		--print(i,v)
 		--showing[i]=true --images assumed to be showing unless otherwise stated
 		--print(booleancomparison(filters,tags[i]) )
-		if  booleancomparison(filters,tags[i]) ==1 then
+		if  booleancomparison(filters,v) ==1 then
+			--print("PASS")
 			showing[i]=true
 		else
-			showing[i]=false
+			--print("FAIL")
+			showing[i]=nil
 		end
 		
 	end
@@ -666,8 +956,13 @@ tag=tag or ""
 	if not v.string then break end
 	
 	if v.mode=="begins with" and tag:sub(1,#v.string) == v.string and #v.string>=1 then return v end
-	if v.mode=="contains" and string.search(tag,v.string) then return v end
+	if v.mode=="contains" and string.find(tag,v.string,0,true) then return v end
 	if v.mode=="ends in" and tag:sub(1+#tag-#v.string,#tag)==v.string and #v.string>=1 then return v end
+	if v.mode=="lua pattern" then
+		local m
+		pcall(function() m=string.find(tag,v.string) end) --because the devs make incorrect patterns throw an error.
+		if m then
+		 return v end end
 	
 	end
 
@@ -725,13 +1020,23 @@ function init(self)
 end
 
 
+local lastscreen=nil
+
 function update(self, dt)
+	--pprint(image)
+	if lastscreen~=programdata.screen then
+		lasttagsuggestion=nil
+		if programdata.screen=="gallery" then
+			creategalleryimageorder()
+		end
+	end
+	lastscreen=programdata.screen
 	
 	config.smartsearchstrength=math.max(0, config.smartsearchstrength)
 	t=t+dt
 	if t>20 then t=t-20 collectgarbage("collect") print("GC") end --hopefully saves some memory.
 	--delta=dt
-	filterimages()
+	--filterimages()
 	
 	if profiler then
 	RAM=(profiler.get_memory_usage())

@@ -1,6 +1,9 @@
 local imageobjects={}
 local textures={}
 local mx,my=0,0
+
+local SELSCROLLBAR
+
 function init(self)
 	msg.post(".", "acquire_input_focus")
 end
@@ -12,141 +15,150 @@ function final(self)
 end
 
 function update(self, dt)
+	--print(1/dt)
 	if programdata.sidebar then goto skip  end
 	for i in pairs(imageobjects ) do
 		gui.delete_node(imageobjects[i])
 		imageobjects[i]=nil --clear objects every refresh.
 	end
-	visnum=0 --[[
-	for i in pairs(textures) do
-		gui.delete_texture(i)
-		textures[i]=nil
-	end]]
+	visnum=0
 
+	--do return end
+	
 	if  programdata.screen ~="gallery" then goto skip end
 
+	local viewport_height,viewport_width=programdata.height,programdata.width --locals are faster
+	local images_per_row=config.imagesperrow
+	
+	local paddingsize=viewport_width*config.galleryimagepadding
+	local sizeofimage= (viewport_width- paddingsize*(images_per_row+1) -config.guiscale*15 )/images_per_row
+	
 
-	local xoffset,yoffset = ( programdata.width*config.galleryimagepadding )   ,0
-	local n=1
-	local bigboy=0 --largest y-num
-	local padwidth,padheight =programdata.width*config.galleryimagepadding , programdata.height*config.galleryimagepadding --save processing time
-
-	local xscaleconstant = ((programdata.width  -    (config.imagesperrow+1)*padwidth -config.guiscale*15    )    /(config.imagesperrow))
-
-	local countofimg=0
-	for i in pairs(images) do
-		countofimg=countofimg+1
-		if not images[i].width then
-			local f,e=io.open("images/"..i ,"rb") --open in read binary mode, because windows sucks. 
-			if not f then print("error reading file "..i.." removing from image pool." , e) images[i]=nil tags[i]=nil goto skip end
-			local td = f:read("*a")
-			--local im =  image.load( td)  
-			local im=hotloadimage(i)
-			images[i] = {  width=im.width , height=im.height , data=td ,hl=true } --only keeping part of this in memory, preserve RAM, unlike last time, dipshit. the size is needed for spacing.
-			f:close()
-			if config.keepimagesloaded and false  then fullimagedata[i]=im end
-			if countofimg>config.loadnum then break end
-		end
-	end
-
-
-
-	imageorder={}
-	for i,imgdata in pairs(images) do --first get the layout up
-		if  not showing[i] then goto next end
+	
+	--imageorder={}
+	--for i in pairs(images) do --first get the layout up
+	--	if  not showing[i] then goto next end
+	--for i in pairs(showing)	do
 		--	print(i)
-		imageorder[#imageorder+1]=i
-
-		local xmult =  xscaleconstant/ (imgdata.width or 1 )
-		local ymult = xmult --multipliers for image size depending on settings and whatnot.
-
-
-
-		programdata.maxgalscroll=yoffset
-
-		--merging for loops, don't mind me
-
+		--local imgindex=#imageorder+1
+		--imageorder[imgindex]=i
+	for imgindex=1,#imageorder do
+		local i=imageorder[imgindex]
 
 		--now check of they need their textures loaded in memory
 		local visible=true
+		local imageposx,imageposy= (imgindex-1)%images_per_row, math.floor( (imgindex-1)/images_per_row) 
+		
+		imageposx=paddingsize+imageposx*(sizeofimage+paddingsize)
 
-		local imagesize = ymult*(imgdata.height or 1)
-		local imagepos = programdata.galleryscroll+programdata.height -  yoffset  - padheight
-		local viewbottom,viewtop = programdata.galleryscroll , programdata.galleryscroll + programdata.height
+		imageposy=paddingsize+imageposy*(sizeofimage+paddingsize)
 
-
-
-		--[[
-		if imagepos  + viewbottom  >= viewtop+imagesize then visible=false end
-		if imagepos+viewtop+imagesize <= viewtop then visible=fasle end
-		]]
-		if imagepos < 0 then visible=false end
-		if imagepos-imagesize > programdata.height then visible=false end
+		imageposy=programdata.galleryscroll+viewport_height-imageposy - config.guiscale*40 
 
 
-
+		if imageposy<0 or imageposy-sizeofimage>viewport_height then visible=false end --vertical culling
+		
+		
 		if visible then
+			local imagesizex,imagesizey=fetchsizeofimage(i)
+			if not imagesizex then goto next end
+			
+			imageobjects[i] = gui.new_box_node(vmath.vector3(imageposx +sizeofimage/2,  imageposy -sizeofimage/2,0), vmath.vector3( sizeofimage , sizeofimage , 0 ))
+			gui.set_color(imageobjects[i], vmath.vector3(.1))
 
-			if (not imgdata.width) or (not imgdata.height) then --alt image loading. hopefully works better as to not frontload it all.
-				--print(i)
-				local f=io.open("images/"..i ,"rb") --open in read binary mode, because windows sucks. 
-				local td = f:read("*a")
-				local im =  image.load( td)  
-				images[i] = {  width=im.width , height=im.height , data=td, hl=false } --only keeping part of this in memory, preserve RAM, unlike last time, dipshit. the size is needed for spacing.
-				imgdata=images[i]
-				f:close()
-				if config.keepimagesloaded  then fullimagedata[i]=im end
-			end
-
-
-
-			imageobjects[i] = gui.new_box_node(   vmath.vector3(  xoffset ,  programdata.galleryscroll+programdata.height -  yoffset  - padheight   ,0 )  , vmath.vector3( xmult*(imgdata.width or 1) , ymult*(imgdata.height or 1) , 0      ) )
-			gui.set_pivot(imageobjects[i] , 8) -- top left is 0,0
+			local imagescalefactor = sizeofimage/math.max(imagesizex , imagesizey)
+			local frontage = gui.new_box_node(   vmath.vector3( 0  )  , vmath.vector3( imagesizex*imagescalefactor , imagesizey*imagescalefactor , 0 ) )
+			--gui.set_pivot(imageobjects[i] , 8) -- top left is 0,0
 
 			visnum=visnum+1
 
+			local texid=generatethumbnailtexture(i) --generateimagetexture(i)
+			if texid then local _,e=pcall(function() gui.set_texture(frontage, texid) end) if e then imagedata[i].thumbnail=nil  print(e) end end
 
-			if not textures[i] then --bugged
-				local tex=fullimagedata[i] or image.load(images[i].data)  --image.load( f:read("*a")  )
-				if config.keepimagesloaded then fullimagedata[i]=tex end
-				gui.new_texture(i, tex.width, tex.height, tex.type, tex.buffer)  --only create texture if needed.
-				print("made texture")
-				textures[i]=true
-			end
-			local _,err = pcall( function() gui.set_texture(imageobjects[i], i)  end)
-			if err then --[[textures[i]=nil]] print(err ) end
-			--local p=0
-			--for i,v in pairs(textures) do p=p+1 end --print(p)
 
+			gui.set_parent(frontage,imageobjects[i])
+			
+			imagedata[i].visible=true
 		else
-
-			if textures[i] then  gui.delete_texture(i) textures[i]=nil end
+			if imagedata[i] then imagedata[i].visible=false end
+			--if textures[i] then  gui.delete_texture(i) textures[i]=nil end
 		end
-
-		xoffset=xoffset+(imgdata.width or 1)*xmult +padwidth
-		bigboy= math.max(bigboy, ymult*(imgdata.height or 1))
-		if n%config.imagesperrow ==0 then
-			yoffset=yoffset+bigboy+ padheight
-			xoffset = padwidth
-			bigboy=(imgdata.height or 1)*ymult
-		end
-		n=n+1
-
 
 		::next::
 	end
 
 
-	imageobjects["\\scrollback"] = gui.new_box_node(vmath.vector3(programdata.width-config.guiscale*15 , programdata.height , 0) , vmath.vector3(config.guiscale*15,programdata.height , 0))
+
+
+
+	imageobjects["\\modebacking"] = gui.new_box_node(vmath.vector3(0 , viewport_height , 0) , vmath.vector3(viewport_width-config.guiscale*15,config.guiscale*40 , 0))
+	gui.set_pivot(imageobjects["\\modebacking"], 8)
+	gui.set_color(imageobjects["\\modebacking"], vmath.vector3(.3))
+
+	imageobjects["\\modecopyallb"] = gui.new_box_node(vmath.vector3(config.guiscale*5 , viewport_height-config.guiscale*5 , 0) , vmath.vector3(config.guiscale*175,config.guiscale*30 , 0))
+	gui.set_pivot(imageobjects["\\modecopyallb"], 8)
+	gui.set_color(imageobjects["\\modecopyallb"], vmath.vector3(.2))
+
+	imageobjects["\\modecopyallt"] = gui.new_text_node(vmath.vector3(config.guiscale*5 , viewport_height-config.guiscale*5 , 0) ,"copy showing" )
+	gui.set_pivot(imageobjects["\\modecopyallt"], 8)
+	gui.set_font(imageobjects["\\modecopyallt"],"sysoneandhalf")
+	gui.set_scale(imageobjects["\\modecopyallt"],vmath.vector3(config.guiscale))
+
+
+	imageobjects["\\modemodet"] = gui.new_text_node(vmath.vector3(config.guiscale*200 , viewport_height-config.guiscale*5 , 0) ,"sort:" )
+	gui.set_pivot(imageobjects["\\modemodet"], 8)
+	gui.set_font(imageobjects["\\modemodet"],"sysoneandhalf")
+	gui.set_scale(imageobjects["\\modemodet"],vmath.vector3(config.guiscale))
+
+
+	imageobjects["\\mode_RNGb"] = gui.new_box_node(vmath.vector3(config.guiscale*275 , viewport_height-config.guiscale*5 , 0) , vmath.vector3(config.guiscale*55,config.guiscale*30 , 0))
+	gui.set_pivot(imageobjects["\\mode_RNGb"], 8)
+	gui.set_color(imageobjects["\\mode_RNGb"], vmath.vector3( programdata.displayorder=="memory" and .5 or .2))
+	imageobjects["\\mode_RNGt"] = gui.new_text_node(vmath.vector3(config.guiscale*280 , viewport_height-config.guiscale*5 , 0) ,"MEM" )
+	gui.set_pivot(imageobjects["\\mode_RNGt"], 8)
+	gui.set_font(imageobjects["\\mode_RNGt"],"sysoneandhalf")
+	gui.set_scale(imageobjects["\\mode_RNGt"],vmath.vector3(config.guiscale))
+
+	imageobjects["\\mode_AZb"] = gui.new_box_node(vmath.vector3(config.guiscale*335 , viewport_height-config.guiscale*5 , 0) , vmath.vector3(config.guiscale*55,config.guiscale*30 , 0))
+	gui.set_pivot(imageobjects["\\mode_AZb"], 8)
+	gui.set_color(imageobjects["\\mode_AZb"], vmath.vector3(programdata.displayorder=="alphabet" and .5 or .2))
+	imageobjects["\\mode_AZt"] = gui.new_text_node(vmath.vector3(config.guiscale*340 , viewport_height-config.guiscale*5 , 0) ,"A-Z" )
+	gui.set_pivot(imageobjects["\\mode_AZt"], 8)
+	gui.set_font(imageobjects["\\mode_AZt"],"sysoneandhalf")
+	gui.set_scale(imageobjects["\\mode_AZt"],vmath.vector3(config.guiscale))
+
+	imageobjects["\\mode_ZAb"] = gui.new_box_node(vmath.vector3(config.guiscale*395 , viewport_height-config.guiscale*5 , 0) , vmath.vector3(config.guiscale*55,config.guiscale*30 , 0))
+	gui.set_pivot(imageobjects["\\mode_ZAb"], 8)
+	gui.set_color(imageobjects["\\mode_ZAb"], vmath.vector3(programdata.displayorder=="alphabetreverse" and .5 or .2))
+	imageobjects["\\mode_ZAt"] = gui.new_text_node(vmath.vector3(config.guiscale*400 , viewport_height-config.guiscale*5 , 0) ,"Z-A" )
+	gui.set_pivot(imageobjects["\\mode_ZAt"], 8)
+	gui.set_font(imageobjects["\\mode_ZAt"],"sysoneandhalf")
+	gui.set_scale(imageobjects["\\mode_ZAt"],vmath.vector3(config.guiscale))
+
+	imageobjects["\\mode_TSMb"] = gui.new_box_node(vmath.vector3(config.guiscale*455 , viewport_height-config.guiscale*5 , 0) , vmath.vector3(config.guiscale*55,config.guiscale*30 , 0))
+	gui.set_pivot(imageobjects["\\mode_TSMb"], 8)
+	gui.set_color(imageobjects["\\mode_TSMb"], vmath.vector3(programdata.displayorder=="tagsimilarity" and .5 or .2))
+	imageobjects["\\mode_TSMt"] = gui.new_text_node(vmath.vector3(config.guiscale*460 , viewport_height-config.guiscale*5 , 0) ,"TSM" )
+	gui.set_pivot(imageobjects["\\mode_TSMt"], 8)
+	gui.set_font(imageobjects["\\mode_TSMt"],"sysoneandhalf")
+	gui.set_scale(imageobjects["\\mode_TSMt"],vmath.vector3(config.guiscale))
+	gui.set_color(imageobjects["\\mode_TSMt"],vmath.vector3( programdata.displayordermeta.target  and 1 or 0  ))
+
+	
+	
+	programdata.maxgalscroll=(sizeofimage+paddingsize)* math.floor(#imageorder/images_per_row)
+	
+
+	imageobjects["\\scrollback"] = gui.new_box_node(vmath.vector3(viewport_width-config.guiscale*15 , viewport_height , 0) , vmath.vector3(config.guiscale*15,programdata.height , 0))
 	gui.set_pivot(imageobjects["\\scrollback"], 8)
 	gui.set_color(imageobjects["\\scrollback"], vmath.vector3(.25,.25,.25))
 
 	--print(programdata.galleryscroll,programdata.maxgalscroll)
-	imageobjects["\\scrollselector"] = gui.new_box_node(vmath.vector3(programdata.width-config.guiscale*15 , programdata.height* (1-(programdata.galleryscroll/math.max(programdata.maxgalscroll,1))) , 0) , vmath.vector3(config.guiscale*15,config.guiscale*500*programdata.height/(programdata.maxgalscroll) , 0))
+	imageobjects["\\scrollselector"] = gui.new_box_node(vmath.vector3(viewport_width-config.guiscale*15 ,viewport_height* (1-(programdata.galleryscroll/math.max(programdata.maxgalscroll,1))) , 0) , vmath.vector3(config.guiscale*15,config.guiscale*500*programdata.height/(programdata.maxgalscroll) , 0))
 	gui.set_pivot(imageobjects["\\scrollselector"], 7)
 	gui.set_color(imageobjects["\\scrollselector"], vmath.vector3(.75,.75,.75))
 
-
+	--print(visnum)
 	--print(dt,visnum)
 	::skip::
 end
@@ -167,16 +179,37 @@ function on_input(self, action_id, action)
 	if programdata.screen=="gallery" and action_id==hash"m1" and action.pressed  and (not programdata.sidebar) then
 		--	programdata.selectedimage
 		for i in pairs(imageobjects) do
-			local ipos = gui.get_position(imageobjects[i])
-			local isiz = gui.get_size(imageobjects[i])
-
-
-
-			if  mx >= ipos.x  and mx <= ipos.x + isiz.x and my <= ipos.y and my >= ipos.y -isiz.y and i:sub(1,1) ~="\\" then  -- and my >= ipos.y + isiz.y 
+			
+			if gui.pick_node(imageobjects[i], action.x,action.y) and i:sub(1,1) ~="\\"  then 
 				programdata.selectedimage=i
 				programdata.screen="image"
 				programdata.debounce=false
 				break
+			elseif gui.pick_node(imageobjects[i], action.x,action.y) and i:sub(1,1) =="\\" then
+				if i=="\\mode_RNGb" then
+					programdata.displayorder="memory"
+					creategalleryimageorder()
+					break
+				elseif i=="\\mode_AZb" then
+					programdata.displayorder="alphabet"
+					creategalleryimageorder()
+					break
+				elseif i=="\\mode_ZAb" then
+					programdata.displayorder="alphabetreverse"
+					creategalleryimageorder()
+					break
+				elseif i=="\\mode_TSMb" then
+					if programdata.displayordermeta.target then
+						programdata.displayorder="tagsimilarity"
+						creategalleryimageorder()
+					end
+					break
+				elseif  i=="\\modecopyallb" then
+					for i=1,#imageorder do
+						copyfile("images/"..imageorder[i] , "copied/"..imageorder[i])
+					end
+				end
+				
 			end
 		end
 		--print( programdata.selectedimage )
@@ -185,7 +218,15 @@ function on_input(self, action_id, action)
 	if programdata.screen=="gallery" and action_id==hash"m1" and (not programdata.sidebar) then
 		--local pos,siz = gui.get_position(imageobjects["\\scrollback"]) , gui.get_size(imageobjects["\\scrollback"])
 		if action.screen_x >= programdata.width-config.guiscale*15 then
+			SELSCROLLBAR=true
 			programdata.galleryscroll = programdata.maxgalscroll* (programdata.height-action.screen_y)/programdata.height
+		else
+			if SELSCROLLBAR then
+				programdata.galleryscroll = programdata.maxgalscroll* (programdata.height-action.screen_y)/programdata.height
+			end
+			if action.released then
+				SELSCROLLBAR=false
+			end
 		end
 
 	end

@@ -1,13 +1,15 @@
 script: "/main/gallery.gui_script"
 fonts {
-  name: "system_font"
-  font: "/builtins/fonts/default.font"
+  name: "sysstd"
+  font: "/main/sysstd.font"
 }
-background_color {
-  x: 0.0
-  y: 0.0
-  z: 0.0
-  w: 0.0
+fonts {
+  name: "sysdouble"
+  font: "/main/sysdouble.font"
+}
+fonts {
+  name: "sysoneandhalf"
+  font: "/main/sysoneandhalf.font"
 }
 material: "/builtins/materials/gui.material"
 adjust_reference: ADJUST_REFERENCE_DISABLED

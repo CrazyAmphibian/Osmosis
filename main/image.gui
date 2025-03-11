@@ -1,7 +1,7 @@
 script: "/main/image.gui_script"
 fonts {
-  name: "system_font"
-  font: "/builtins/fonts/default.font"
+  name: "sysstd"
+  font: "/main/sysstd.font"
 }
 fonts {
   name: "sysdouble"
@@ -10,12 +10,6 @@ fonts {
 fonts {
   name: "sysoneandhalf"
   font: "/main/sysoneandhalf.font"
-}
-background_color {
-  x: 0.0
-  y: 0.0
-  z: 0.0
-  w: 0.0
 }
 material: "/builtins/materials/gui.material"
 adjust_reference: ADJUST_REFERENCE_DISABLED

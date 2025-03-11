@@ -120,8 +120,6 @@ known issues/notes:
 		feel free to disable it if it seems spooky, the program makes no network calls on its own
 	images are loaded/unloaded into memory as needed, and may cause stutter when scrolling
 		- this doesn't have a good solution, as storing image data into memory is costly
-	images are not initialized at startup (too long), and may result in flashes of color when scrolling quickly when program has just started
-		- again, no good solution. you can increase "image loading count" in settings to offset this.
 	some images fail to load ("invalid argument")
 		-thre is no solution, as different setups don't always replicate this behavior. program has been hardened against this to prevent crashes.
 	Osmosis uses the Defold game engine. scripts are programmed in Lua. for documentation visit the respective links:
@@ -132,6 +130,21 @@ todo:
 
 
 changelog:
+	V34
+		Implemented a large behind the scenes rework of code
+			result is a cleaner codespace
+			increased performance
+		Added sorting to the gallery view, by memory order, or alphabetical
+		Added option to sort gallery images by tag similarity to another image
+		Enhanced the options screen
+		Added thumbnail generation
+			increases gallery performance and reduced memory use
+		changed gallery images to be of a fixed size
+		Fixed some input-related bugs
+		Reduced overall text size
+		Moved some buttons which were previously in the options menu
+			Copy selected image -> image screen
+			Copy showing images -> gallery screen
 	V33
 		fixed not being able to click out of full image view
 		changed smart search algorithm.

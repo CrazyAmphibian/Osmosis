@@ -100,7 +100,7 @@ function update(self, dt)
 		elemt["\n\n"]= _
 		
 	
-		elemt["type"]=gui.new_box_node(vmath.vector3(xoff+lv*40*config.guiscale,programdata.height-yoff,0), vmath.vector3(80*config.guiscale,40*config.guiscale,0) )
+		elemt["type"]=gui.new_box_node(vmath.vector3(xoff+lv*40*config.guiscale,programdata.height-yoff,0), vmath.vector3(80*config.guiscale,30*config.guiscale,0) )
 		gui.set_pivot(elemt["type"], 8)
 		gui.set_color(elemt["type"], vmath.vector3(.1,.1,.1))
 
@@ -108,9 +108,9 @@ function update(self, dt)
 		elemt["\ttype"]=gui.new_text_node(vmath.vector3(xoff+lv*40*config.guiscale,programdata.height-yoff,0), filtt.type or "" )
 		gui.set_pivot(elemt["\ttype"], 8)
 		gui.set_color(elemt["\ttype"], vmath.vector3(1,1,1))
-		gui.set_font(elemt["\ttype"], "sysdouble")
+		gui.set_font(elemt["\ttype"], "sysoneandhalf")
 		gui.set_scale(elemt["\ttype"], vmath.vector3(config.guiscale ,config.guiscale ,0  ))
-		yoff=yoff + 40*config.guiscale+ config.guiscale*10
+		yoff=yoff + 30*config.guiscale+ config.guiscale*10
 		
 		--xoff=xoff-40*config.guiscale
 		--xoff=xoff+ config.guiscale*20
@@ -121,19 +121,19 @@ function update(self, dt)
 			if type(filtt.tags[i]) ~="table" then
 				local tc = gettagcolor(filtt.tags[i])
 				
-				elemt["tags"][i] = gui.new_box_node(vmath.vector3(xoff+lv*40*config.guiscale,programdata.height-yoff,0)  , vmath.vector3(80*config.guiscale+programdata.width,40*config.guiscale,0))
+				elemt["tags"][i] = gui.new_box_node(vmath.vector3(xoff+lv*40*config.guiscale,programdata.height-yoff,0)  , vmath.vector3(80*config.guiscale+programdata.width,30*config.guiscale,0))
 				gui.set_pivot(elemt["tags"][i], 8)
 				gui.set_color(elemt["tags"][i], vmath.vector3(tc.b[1],tc.b[2],tc.b[3]))
 
 				elemt["tags"]["\t"..i]=gui.new_text_node(vmath.vector3(xoff+lv*40*config.guiscale,programdata.height-yoff,0), filtt.tags[i] )
 				gui.set_pivot(elemt["tags"]["\t"..i], 8)
 				gui.set_color(elemt["tags"]["\t"..i], vmath.vector3(tc.t[1],tc.t[2],tc.t[3]))
-				gui.set_font(elemt["tags"]["\t"..i], "sysdouble")
+				gui.set_font(elemt["tags"]["\t"..i], "sysoneandhalf")
 				gui.set_scale(elemt["tags"]["\t"..i], vmath.vector3(config.guiscale ,config.guiscale ,0  ))
 				--print("##",editstring,"@@",pathing..i.."\r","##")
 				if pathing..i.."\r" == editstring then
 					--now that we have the active editing thingy, let's store the position for later
-					autocomplete.x=xoff+lv*40*config.guiscale
+					autocomplete.x=xoff+lv*30*config.guiscale
 					autocomplete.y=yoff
 					autocomplete.str=filtt.tags[i]
 					autocomplete.enabled=true		
@@ -141,7 +141,7 @@ function update(self, dt)
 					autocomplete.filter=filtt.tags
 				end
 				
-				yoff=yoff + 40*config.guiscale+ config.guiscale*10
+				yoff=yoff + 30*config.guiscale+ config.guiscale*10
 			else
 				elemt["tags"][i]={}
 				makeelementsfromfilts(filtt.tags[i] ,elemt["tags"][i] , lv+1,false , pathing..""..i.."\rtags".."\r")
@@ -149,20 +149,20 @@ function update(self, dt)
 		end
 		if not hide then xoff=xoff-00*config.guiscale end
 		--now make the add buttons
-		elemt["add"]=gui.new_box_node(vmath.vector3(xoff+lv*40*config.guiscale,programdata.height-yoff,0), vmath.vector3(40*config.guiscale,40*config.guiscale,0) )
+		elemt["add"]=gui.new_box_node(vmath.vector3(xoff+lv*30*config.guiscale,programdata.height-yoff,0), vmath.vector3(30*config.guiscale) )
 		gui.set_pivot(elemt["add"], 8)
 		gui.set_color(elemt["add"], vmath.vector3(.1,.1,.1))
 
-		elemt["\radd"]=gui.new_box_node(vmath.vector3(xoff+lv*40*config.guiscale,programdata.height-yoff,0), vmath.vector3(40*config.guiscale,40*config.guiscale,0) )
+		elemt["\radd"]=gui.new_box_node(vmath.vector3(xoff+lv*30*config.guiscale,programdata.height-yoff,0), vmath.vector3(30*config.guiscale) )
 		gui.set_pivot(elemt["\radd"], 8)
 		gui.set_texture(elemt["\radd"], "srcimg")
 		gui.play_flipbook(elemt["\radd"], "add")
 
-		elemt["bool"]=gui.new_box_node(vmath.vector3(xoff+lv*40*config.guiscale+40*config.guiscale,programdata.height-yoff,0), vmath.vector3(40*config.guiscale,40*config.guiscale,0) )
+		elemt["bool"]=gui.new_box_node(vmath.vector3(xoff+lv*30*config.guiscale+30*config.guiscale,programdata.height-yoff,0), vmath.vector3(30*config.guiscale) )
 		gui.set_pivot(elemt["bool"], 8)
 		gui.set_color(elemt["bool"], vmath.vector3(.1,.1,.1))
 
-		elemt["\rbool"]=gui.new_box_node(vmath.vector3(xoff+lv*40*config.guiscale+40*config.guiscale,programdata.height-yoff,0), vmath.vector3(40*config.guiscale,40*config.guiscale,0) )
+		elemt["\rbool"]=gui.new_box_node(vmath.vector3(xoff+lv*30*config.guiscale+30*config.guiscale,programdata.height-yoff,0), vmath.vector3(30*config.guiscale) )
 		gui.set_pivot(elemt["\rbool"], 8)
 		gui.set_texture(elemt["\rbool"], "srcimg")
 		gui.play_flipbook(elemt["\rbool"], "bool")
@@ -170,7 +170,7 @@ function update(self, dt)
 
 
 		
-		yoff=yoff+50*config.guiscale
+		yoff=yoff+40*config.guiscale
 
 		if _ then
 			gui.set_size(_,   vmath.vector3(2*programdata.width,yoff-10*config.guiscale,0) -gui.get_size(_)     )    
@@ -189,6 +189,21 @@ function update(self, dt)
 
 
 		newttable=ordertagsuggestions(autocomplete.match,nil,autocomplete.filter) -- time to copy pase this from the image script
+
+		for i=#newttable,1,-1 do
+			local v=newttable[i]
+			if not (config.fuzzysearch and v:fuzzysearch(autocomplete.match) or v:search(autocomplete.match)) then
+				table.remove(newttable,i)
+			else
+				for i2=1,#autocomplete.filter do
+					if autocomplete.filter[i2]==v then
+						table.remove(newttable,i)
+					end
+				end
+			end
+
+		end
+
 		--[[for i,v in pairs(programdata.tagcount) do
 			local added
 			for i2,v2 in pairs(newttable) do
@@ -278,6 +293,7 @@ function on_input(self, action_id, action)
 					if mx>=pos.x and mx<=pos.x+siz.x and my<=pos.y and my>=pos.y-siz.y then
 						if type(i)=="number" then--tostring(i):sub(1,1)~="\r" and tostring(i):sub(1,1)~="\t"  then
 							if action_id==hash"m1" then --AAAAAAAAAAAAAAAHHHH. TEXT DETECTION!
+								lasttagsuggestion=nil
 								editstring=pathstring..i.."\r"
 								validbox=true
 							elseif action_id==hash"m2" then
@@ -318,10 +334,11 @@ function on_input(self, action_id, action)
 						for boxitem in pairs(v) do
 							if not gui.get_text(v[boxitem]) then
 								local siz,pos = gui.get_size(v[boxitem]) , gui.get_position(v[boxitem])
-								local mx,my = action.screen_x,action.screen_y
+								local mx,my = action.x,action.y
 								if    gui.pick_node(v[boxitem], mx, my) then --mx>=pos.x and mx<=pos.x+siz.x and my<=pos.y and my>=pos.y-siz.y
 									--print(editstring)              
 									if action_id==hash"m1" then
+										lasttagsuggestion=nil
 										stringvalue(boxitem)
 									elseif action_id==hash"m2" then --keep it open on rihgt click
 										queue["s"]=function() stringvalue(boxitem) end

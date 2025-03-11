@@ -55,7 +55,7 @@ key_trigger {
   action: "v"
 }
 mouse_trigger {
-  input: MOUSE_BUTTON_1
+  input: MOUSE_BUTTON_LEFT
   action: "m1"
 }
 mouse_trigger {
@@ -67,7 +67,7 @@ mouse_trigger {
   action: "mwd"
 }
 mouse_trigger {
-  input: MOUSE_BUTTON_2
+  input: MOUSE_BUTTON_RIGHT
   action: "m2"
 }
 text_trigger {
