@@ -384,6 +384,7 @@ function on_input(self, action_id, action)
 			
 			if imageobjects["entrybox"] and gui.pick_node(imageobjects["entrybox"], action.x, action.y) and action.pressed then --action.x <= config.guiscale*150 and action.y >= programdata.height-config.guiscale*80 then   
 				if not editstring then
+					lasttagsuggestion=nil
 					transfer("\raddtag")
 				else
 					tempstring=""
@@ -509,8 +510,8 @@ function on_input(self, action_id, action)
 	end
 
 	if programdata.screen=="image" and not programdata.sidebar then
-		if action_id==hash"text" and editstring then tempstring=tempstring..action.text:lower() end
-		if action_id==hash"delete" and editstring and (action.pressed or action.repeated) then tempstring=tempstring:sub(1,#tempstring-1) end
+		if action_id==hash"text" and editstring then lasttagsuggestion=nil tempstring=tempstring..action.text:lower() end
+		if action_id==hash"delete" and editstring and (action.pressed or action.repeated) then lasttagsuggestion=nil tempstring=tempstring:sub(1,#tempstring-1) end
 	end
 
 	if not programdata.sidebar and not programdata.fullimagemode then --this shit doesn't work. why?

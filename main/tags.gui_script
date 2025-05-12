@@ -374,6 +374,7 @@ function on_input(self, action_id, action)
 
 if action_id==hash"text" then
 	if editstring then
+		lasttagsuggestion=nil
 		stringvalue(  (stringvalue() or "")..action.text:lower()      )
 	end
 	
@@ -381,6 +382,7 @@ end
 
 	if action_id==hash"delete" and (action.pressed or action.repeated) then
 		if editstring then
+			lasttagsuggestion=nil
 		local w= stringvalue()
 		stringvalue(  w:sub(1,#w -1)      )
 		end

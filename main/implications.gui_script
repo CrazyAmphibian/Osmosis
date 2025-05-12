@@ -739,9 +739,11 @@ function on_input(self, action_id, action)
 
 	
 	if action_id ==hash"text" then
+		lasttagsuggestion=nil
 		if editmode then tempstring=(tempstring or "")..action.text:lower() end
 	end
 	if action_id ==hash"delete" and (action.pressed or action.repeated) then
+		lasttagsuggestion=nil
 		if editmode then tempstring=(tempstring or ""):sub(1,#tempstring-1) end
 		
 	end
