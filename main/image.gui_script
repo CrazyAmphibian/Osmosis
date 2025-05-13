@@ -218,6 +218,10 @@ function update(self, dt)
 	imageobjects["t\bcopyimage"]=gui.new_box_node( vmath.vector3(config.guiscale*500,config.guiscale*20,0), config.guiscale*vmath.vector3(200,30 ,0))
 	gui.set_color(imageobjects["t\bcopyimage"], vmath.vector3(.2))
 	imageobjects["b\bcopyimage"]=gui.new_text_node( vmath.vector3(config.guiscale*500,config.guiscale*20,0), "copy image")
+
+	imageobjects["t\bassociateimage"]=gui.new_box_node( vmath.vector3(config.guiscale*710,config.guiscale*20,0), config.guiscale*vmath.vector3(200,30 ,0))
+	gui.set_color(imageobjects["t\bassociateimage"], vmath.vector3(.2))
+	imageobjects["b\bassociateimage"]=gui.new_text_node( vmath.vector3(config.guiscale*710,config.guiscale*20,0), "associations")
 	
 	
 	end
@@ -417,9 +421,16 @@ function on_input(self, action_id, action)
 				programdata.displayorder="tagsimilarity"
 				programdata.displayordermeta.target=programdata.selectedimage
 				programdata.galleryscroll=0.0
+				programdata.screen="gallery"
 				--programdata.screen="gallery"
 			elseif imageobjects["t\bcopyimage"] and gui.pick_node(imageobjects["t\bcopyimage"], action.x, action.y) and action.pressed then
 				copyfile("images/"..programdata.selectedimage , "copied/"..programdata.selectedimage)
+			elseif  imageobjects["t\bassociateimage"] and gui.pick_node(imageobjects["t\bassociateimage"], action.x, action.y) and action.pressed then
+				print("main/image.gui_script:429 associate trigger")
+				programdata.screen ="associations"
+				programdata.associatedimage=programdata.selectedimage
+				programdata.assocfilterimage=programdata.assocfilterimage or programdata.selectedimage
+				programdata.associatedfilterthis=true
 			elseif action.x >= config.guiscale*150 and not programdata.fullimagemode and action.pressed then --swap when clicked
 --				local ims , ips = gui.get_size(imageobjects["image"]) , gui.get_position(imageobjects["image"])
 				if gui.pick_node(imageobjects["image"], action.x, action.y) then 

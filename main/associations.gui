@@ -1,0 +1,20 @@
+script: "/main/associations.gui_script"
+fonts {
+  name: "sysdouble"
+  font: "/main/sysdouble.font"
+}
+fonts {
+  name: "sysoneandhalf"
+  font: "/main/sysoneandhalf.font"
+}
+fonts {
+  name: "sysstd"
+  font: "/main/sysstd.font"
+}
+textures {
+  name: "srcimg"
+  texture: "/main/srcimg.atlas"
+}
+material: "/builtins/materials/gui.material"
+adjust_reference: ADJUST_REFERENCE_DISABLED
+max_nodes: 8192

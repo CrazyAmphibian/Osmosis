@@ -49,4 +49,7 @@ images {
 images {
   image: "/main/armyes.png"
 }
+images {
+  image: "/main/associations.png"
+}
 extrude_borders: 2

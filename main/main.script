@@ -104,7 +104,14 @@ print(possible)
 
 
 _ZWS="\xe2\x80\x8b"
-	
+
+function string.truncate(s,len)
+	if #s>len then
+		return s:sub(1,(len/2) ) .."..."..  s:sub(#s-(len/2) ,#s) 
+	end
+	return s
+end
+
 
 function string.breakup(s)
 	--print("B",#s)
@@ -364,8 +371,9 @@ end
 
 function writeconfigfile() --does what you think.
 	local cftext = "config="..table.tostring(config , true,true)
+	local astext = "associations="..table.tostring(associations , true,true)
 	local f=io.open("config","w")
-	f:write(cftext)
+	f:write(cftext.." "..astext)
 	f:flush()
 	f:close()	
 end
@@ -829,6 +837,7 @@ function reload() --refreshes all images, tags, ect
 	filters={}
 	fullimagedata={} --used for keeploaded
 	imagedata={} print("ALLDESTROY")
+	associations={}
 	
 	local _,e = pcall(function() dofile("config") end)
 	if e then
@@ -842,6 +851,9 @@ function reload() --refreshes all images, tags, ect
 		end
 	end --again, idiot-proof the code if someone messes with it, or my code sucks.
 
+	associations=associations or {}
+	
+	
 	config.imagesperrow=	config.imagesperrow or 4 --images per row in the gallery view
 	config.galleryimagepadding=config.galleryimagepadding or .04 --buffer between images in the gallery as a proportion of screen space
 	config.guiscale = config.guiscale or 1 --scale of some GUI elements eg tags and settings
@@ -929,7 +941,7 @@ function reload() --refreshes all images, tags, ect
 	programdata.tagscroll=0
 	programdata.filterscroll=0
 	programdata.screen="gallery"
-	programdata.screenorder={  "gallery" , "image" , "settings" ,"implications", "tags"  }
+	programdata.screenorder={  "gallery" , "image" , "settings" , "associations" ,"implications", "tags"  }
 	programdata.displayorder="memory"
 	programdata.displayordermeta={}
 	programdata.debounce=true
