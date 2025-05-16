@@ -371,9 +371,16 @@ end
 
 function writeconfigfile() --does what you think.
 	local cftext = "config="..table.tostring(config , true,true)
-	local astext = "associations="..table.tostring(associations , true,true)
 	local f=io.open("config","w")
-	f:write(cftext.." "..astext)
+	f:write(cftext)
+	f:flush()
+	f:close()	
+end
+
+function writeassocfile() 
+	local astext = "associations="..table.tostring(associations , true,true)
+	local f=io.open("associations","w")
+	f:write(astext)
 	f:flush()
 	f:close()	
 end
@@ -639,7 +646,11 @@ function creategalleryimageorder()
 			imageorder[i]=tot[i][1]
 		end
 		
-		
+	elseif programdata.displayorder=="associated" then
+		local ass=associations[programdata.displayordermeta.association]
+		for i=1,#ass.images do
+			imageorder[#imageorder+1] = ass.images[i]
+		end
 	end
 
 end
@@ -851,6 +862,11 @@ function reload() --refreshes all images, tags, ect
 		end
 	end --again, idiot-proof the code if someone messes with it, or my code sucks.
 
+	local _,e = pcall(function() dofile("associations") end)
+	if e then
+		associations={} print("ERROR WHEN IMPORTING ASSOCIATIONS FILE!!:\t"..e) 
+
+	end
 	associations=associations or {}
 	
 	
@@ -867,7 +883,7 @@ function reload() --refreshes all images, tags, ect
 
 	
 	_INTTM=os.clock()
-	print("loading confing took ".._INTTM-_INTTM2.." seconds")
+	print("loading confing and associations took ".._INTTM-_INTTM2.." seconds")
 	_INTTM2=_INTTM
 	
 	local imagestor= getfiles("images")
@@ -954,6 +970,8 @@ function reload() --refreshes all images, tags, ect
 	programdata.settingscroll=0
 	programdata.tagshorcroll=0
 	programdata.imageorder={} --stores the order of images on the gallery.
+	programdata.associationscroll=0
+	programdata.specassscroll=0
 	writeconfigfile()
 	filters={type="and",tags={}}
 	creategalleryimageorder()

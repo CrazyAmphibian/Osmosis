@@ -144,6 +144,14 @@ function update(self, dt)
 	gui.set_scale(imageobjects["\\mode_TSMt"],vmath.vector3(config.guiscale))
 	gui.set_color(imageobjects["\\mode_TSMt"],vmath.vector3( programdata.displayordermeta.target  and 1 or 0  ))
 
+	imageobjects["\\mode_ASSb"] = gui.new_box_node(vmath.vector3(config.guiscale*515 , viewport_height-config.guiscale*5 , 0) , vmath.vector3(config.guiscale*55,config.guiscale*30 , 0))
+	gui.set_pivot(imageobjects["\\mode_ASSb"], 8)
+	gui.set_color(imageobjects["\\mode_ASSb"], vmath.vector3(programdata.displayorder=="associated" and .5 or .2))
+	imageobjects["\\mode_ASSt"] = gui.new_text_node(vmath.vector3(config.guiscale*520 , viewport_height-config.guiscale*5 , 0) ,"ASS" )
+	gui.set_pivot(imageobjects["\\mode_ASSt"], 8)
+	gui.set_font(imageobjects["\\mode_ASSt"],"sysoneandhalf")
+	gui.set_scale(imageobjects["\\mode_ASSt"],vmath.vector3(config.guiscale))
+	gui.set_color(imageobjects["\\mode_ASSt"],vmath.vector3( programdata.displayordermeta.association  and 1 or 0  ))
 	
 	
 	programdata.maxgalscroll=(sizeofimage+paddingsize)* math.floor(#imageorder/images_per_row)
@@ -204,6 +212,12 @@ function on_input(self, action_id, action)
 						creategalleryimageorder()
 					end
 					break
+				elseif i=="\\mode_ASSb" then
+					if programdata.displayordermeta.association then
+						programdata.displayorder="associated"
+						creategalleryimageorder()
+					end
+					break	
 				elseif  i=="\\modecopyallb" then
 					for i=1,#imageorder do
 						copyfile("images/"..imageorder[i] , "copied/"..imageorder[i])

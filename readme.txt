@@ -15,6 +15,7 @@ screens and what they do:
 	tags - the screen where you set your filters for images based on tags
 	settings - user prefences such as tag colors or gui scale
 	implications - allows a combination of tags to add or remove other tags
+	associations - groups together multiple images
 
 
 why Osmosis?
@@ -61,6 +62,18 @@ controls:
 		right click: negate boolean
 		left click: cycle boolean
 		scroll: scroll up/down
+
+gallery navigation:
+	the top part of the gallery screen is divided into two sections - actions and display settings.
+		current actions:
+			copy showing - makes a copy of all images in the gallery into the "copied" folder.
+		the following display settings exist:
+			MEM - display images in order which they appear in memory. effectively random.
+			A-Z - display images alphabetically by their file name, from A to Z
+			Z-A - display images alphabetically by their file name, from Z to A
+			TSM - tag similarity. on the image view, click find similar by tags to activate this setting.
+			ASS - association mode. displays all images in an association in order. overrides tag filtering. click filter on an association to activate this setting.
+	the right side of the screen has a scroll bar, which can be dragged around.
 
 
 "boolean filters":
