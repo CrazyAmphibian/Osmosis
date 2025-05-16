@@ -9,7 +9,7 @@ local typeing_setstring -- sets the string to modify. this would then go a[1]=st
 local typeing_identifier="" --string that is used for ID for text flashing or stuff
 --we do this to make it quite dynamic and easy to modify things.
 
-local MAX_TUMBNAILS=10
+local MAX_TUMBNAILS=64
 local thumbnailbuffers={}
 
 local filterimage_filterresults=false
@@ -118,6 +118,10 @@ if not programdata.activeassociation then --viewing all associations
 	yoff=yoff-_scale*30 + programdata.associationscroll
 	
 	for i=1,#associations do
+		
+		if yoff>_scale*40 then yoff=yoff-_scale*(138+50+40) goto continue end
+		if yoff<-(programdata.height-_scale*(10)) then break end
+		
 		local assoc=associations[i]
 		local node
 		
@@ -484,6 +488,9 @@ else --modifying a single association
 	local yoff=-(35+96)*_scale-programdata.specassscroll/_scale
 	
 	for i=1,#assoc.images do
+		if yoff>_scale*20 then yoff=yoff-(128+35)*_scale goto continue end
+		if yoff<-(programdata.height-_scale*10) then yoff=yoff-(128+35)*_scale break end
+		
 		local ifn=assoc.images[i]
 		local t=assoc_generate_thumbnail(ifn)
 		
@@ -651,6 +658,7 @@ else --modifying a single association
 
 		
 		yoff=yoff-(128+35)*_scale
+		::continue::
 	end
 
 
@@ -787,7 +795,7 @@ function on_input(self, action_id, action)
 		if action_id==hash"mwd" then
 			programdata.associationscroll=programdata.associationscroll-10*config.scrollsen/config.guiscale
 		end
-		programdata.associationscroll=math.min(programdata.associationscroll,0)
+		programdata.associationscroll=math.max(programdata.associationscroll,0)
 	end
 	
 	for i=p_max,p_min,-1 do
