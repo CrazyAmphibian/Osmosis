@@ -698,7 +698,8 @@ function on_input(self, action_id, action)
 	if action_id==hash"text" and typebinding then
 		typebinding(action.text)
 	end
-	if action_id==hash"delete" and action.repeated and typebinding then
+
+	if action_id==hash"delete" and (action.repeated or action.pressed) and typebinding then
 		typebinding("")
 	end
 	
