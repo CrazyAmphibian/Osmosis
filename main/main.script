@@ -65,6 +65,21 @@ function table.tostring(t,showallkeys,humanmode,rlevel,exclude)
 
 end
 
+--deprecated in 1.13
+if not gui.get_text_metrics_from_node then
+function gui.get_text_metrics_from_node(node)
+	local options={line_break=false}
+	if gui.get_line_break(node) then options.line_break=true end
+	options.width=gui.get_size(node).x
+	if gui.get_font(node)==hash"" then return {width=0,height=0} end
+	local out=resource.get_text_metrics(gui.get_font_resource(gui.get_font(node)), gui.get_text(node), options)
+	out.width=out.width*gui.get_scale(node).x
+	out.height=out.height*gui.get_scale(node).y
+	--pprint(out)
+	return out
+end
+end
+
 --[[
 possible=sys.get_config_string("filetoparse","")
 if possible and #possible>1 then
@@ -388,6 +403,7 @@ end
 makedir("images") --make required folders.
 makedir("tags")
 makedir("copied") 
+makedir(".thumbnails") 
 
 
 
@@ -728,47 +744,82 @@ function generatethumbnailtexture(imagename)
 	
 	local nubuf
 	if not imgdat.thumbnailbuffer then
-	
-	local f,e=io.open("images/"..imagename ,"rb")
-	if not f then print(imagename,e) imgdat.error=true return end
-	local rawd=image.load(f:read("*a"))
-	f:close()
-	if not rawd then print(imagename,"LOAD FALIURE") imgdat.error=true return end
+		--try to load cached thumbnail
+		local cachesuccess=false
+		local ctf=io.open(".thumbnails/"..imagename,"rb")
+		if ctf then
+			local content=ctf:read("*all")
+			local f=load("return "..content)
+			if f then
+				setfenv(f,{})
+				tdata=f()
+				imgdat.thumbnailimagetype=tdata.type
+				imgdat.thumbnailw=tdata.width
+				imgdat.thumbnailh=tdata.height
+				imgdat.thumbnailbuffer=tdata.buffer
+				nubuf=tdata.buffer
+				if config.thumbnailsize>math.max(imgdat.thumbnailw,imgdat.thumbnailh) then
+					print("image "..imagename.."'s thumbnail was "..math.max(imgdat.thumbnailw,imgdat.thumbnailh)..", smaller than the config wants. re-generating new thumbnail with size "..config.thumbnailsize)
+				else
+					cachesuccess=true
+				end
+				
+			end
+			ctf:close()
+		end	
+		
+		if not cachesuccess then
+			local f,e=io.open("images/"..imagename ,"rb")
+			if not f then print(imagename,e) imgdat.error=true return end
+			local rawd=image.load(f:read("*a"))
+			f:close()
+			if not rawd then print(imagename,"LOAD FALIURE") imgdat.error=true return end
 
-	--config.thumbnailsize
-	
-	--local start2=os.clock()
+			--config.thumbnailsize
+			
+			--local start2=os.clock()
 
-	imgdat.width=rawd.width
-	imgdat.height=rawd.height
+			imgdat.width=rawd.width
+			imgdat.height=rawd.height
 
-	local buffer={}
-	local width=1
-	if rawd.type==image.TYPE_RGB then width=3 end
-	if rawd.type==image.TYPE_RGBA then width=4 end
-	if rawd.type==image.TYPE_LUMINANCE then width=1 end
-	if rawd.type==image.TYPE_LUMINANCE_ALPHA then width=2 end
+			local buffer={}
+			local width=1
+			if rawd.type==image.TYPE_RGB then width=3 end
+			if rawd.type==image.TYPE_RGBA then width=4 end
+			if rawd.type==image.TYPE_LUMINANCE then width=1 end
+			if rawd.type==image.TYPE_LUMINANCE_ALPHA then width=2 end
 
-	local reduce=math.ceil(math.max(imgdat.width,imgdat.height)/(config.thumbnailsize))
-	local nw,nh=math.floor(imgdat.width/reduce), math.floor(imgdat.height/reduce)
+			local reduce=(math.max(imgdat.width,imgdat.height)/(config.thumbnailsize))
+			
+			print(reduce)
+			local nw,nh=math.floor(imgdat.width/reduce), math.floor(imgdat.height/reduce)
+			print(nw,nh)
 
-	local ow=imgdat.width
-	
-	--print(imgdat.width,imgdat.height,nw,nh,reduce,config.thumbnailsize)
-	for h=0,nh-1 do
-		--h=h
-		for w=0,nw-1 do
-			--w=w
-			buffer[#buffer+1]=string.sub(rawd.buffer,(h*width*ow+w*width)*reduce+1,(h*width*ow+w*width)*reduce+width)
+			local ow=imgdat.width
+			local oh=imgdat.height
+			
+			--print(imgdat.width,imgdat.height,nw,nh,reduce,config.thumbnailsize)
+			for h=0,nh-1 do
+				--h=h
+				for w=0,nw-1 do
+					local bytepos=width*(ow*math.floor(h*oh/nh)+math.floor(w*ow/nw))
+					buffer[#buffer+1]=string.sub(rawd.buffer,bytepos+1,bytepos+width)
+				end
+			end
+
+			--local start3=os.clock()
+			nubuf=table.concat(buffer)
+
+			imgdat.thumbnailimagetype=rawd.type
+			imgdat.thumbnailw=nw
+			imgdat.thumbnailh=nh
+			
+			local cf=io.open(".thumbnails/"..imagename,"wb")
+			if cf then
+				cf:write(table.tostring({type=rawd.type,buffer=nubuf,width=nw,height=nh}) )
+				cf:close()
+			end
 		end
-	end
-
-	--local start3=os.clock()
-	nubuf=table.concat(buffer)
-
-	imgdat.thumbnailimagetype=rawd.type
-	imgdat.thumbnailw=nw
-	imgdat.thumbnailh=nh
 	else
 		nubuf=imgdat.thumbnailbuffer
 	end
