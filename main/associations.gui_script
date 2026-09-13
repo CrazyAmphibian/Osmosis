@@ -94,7 +94,7 @@ function update(self, dt)
 	plists={}
 
 	if  programdata.screen ~="associations" then return end
-
+	if programdata.sidebar then return end
 	local _scale=config.guiscale
 	--[[
 	assoc.images = {}
