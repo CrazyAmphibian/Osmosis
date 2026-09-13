@@ -166,6 +166,7 @@ if not programdata.activeassociation then --viewing all associations
 		node=gui.new_text_node(vmath.vector3(0,0,0), assoc.name .. (((os.clock()%1>=.5) and isselected) and "|" or "") )
 		gui.set_font(node, "sysoneandhalf")
 		gui.set_pivot(node, gui.PIVOT_NW)
+		gui.set_scale(node, vmath.vector3(config.guiscale))
 		gui.set_parent(node,pnode)
 		
 
@@ -319,6 +320,7 @@ if not programdata.activeassociation then --viewing all associations
 			node=gui.new_text_node(vmath.vector3(15*_scale,-0*_scale,0), "filter")
 			gui.set_pivot(node, gui.PIVOT_NW)
 			gui.set_font(node, "sysstd")
+			gui.set_scale(node, vmath.vector3(_scale))
 			gui.set_parent(node,pnode)
 			
 			--targetimage_filterrestults
@@ -335,6 +337,7 @@ if not programdata.activeassociation then --viewing all associations
 			node=gui.new_text_node(vmath.vector3(0*_scale,-0*_scale,0), "set as target")
 			gui.set_pivot(node, gui.PIVOT_NW)
 			gui.set_font(node, "sysstd")
+			gui.set_scale(node, vmath.vector3(_scale))
 			gui.set_parent(node,pnode)
 
 
@@ -353,6 +356,7 @@ if not programdata.activeassociation then --viewing all associations
 			node=gui.new_text_node(vmath.vector3(0*_scale,-0*_scale,0), "open image")
 			gui.set_pivot(node, gui.PIVOT_NW)
 			gui.set_font(node, "sysstd")
+			gui.set_scale(node, vmath.vector3(_scale))
 			gui.set_parent(node,pnode)
 
 			node=gui.new_box_node(vmath.vector3(_scale*(20+128),programdata.height-_scale*85,0), vmath.vector3(_scale*100,_scale*15,0))
@@ -367,6 +371,7 @@ if not programdata.activeassociation then --viewing all associations
 			node=gui.new_text_node(vmath.vector3(0*_scale,-0*_scale,0), "clear")
 			gui.set_pivot(node, gui.PIVOT_NW)
 			gui.set_font(node, "sysstd")
+			gui.set_scale(node, vmath.vector3(_scale))
 			gui.set_parent(node,pnode)
 		end
 	end
@@ -417,6 +422,7 @@ if not programdata.activeassociation then --viewing all associations
 			node=gui.new_text_node(vmath.vector3(-15*_scale,-0*_scale,0), "filter")
 			gui.set_pivot(node, gui.PIVOT_NE)
 			gui.set_font(node, "sysstd")
+			gui.set_scale(node, vmath.vector3(_scale))
 			gui.set_parent(node,pnode)
 
 			node=gui.new_box_node(vmath.vector3(programdata.width-_scale*(20+128),programdata.height-_scale*45,0), vmath.vector3(_scale*100,_scale*15,0))
@@ -431,6 +437,7 @@ if not programdata.activeassociation then --viewing all associations
 			node=gui.new_text_node(vmath.vector3(0*_scale,-0*_scale,0), "set as selected")
 			gui.set_pivot(node, gui.PIVOT_NE)
 			gui.set_font(node, "sysstd")
+			gui.set_scale(node, vmath.vector3(_scale))
 			gui.set_parent(node,pnode)
 
 			node=gui.new_box_node(vmath.vector3(programdata.width-_scale*(20+128),programdata.height-_scale*65,0), vmath.vector3(_scale*100,_scale*15,0))
@@ -446,6 +453,7 @@ if not programdata.activeassociation then --viewing all associations
 			node=gui.new_text_node(vmath.vector3(0*_scale,-0*_scale,0), "open image")
 			gui.set_pivot(node, gui.PIVOT_NE)
 			gui.set_font(node, "sysstd")
+			gui.set_scale(node, vmath.vector3(_scale))
 			gui.set_parent(node,pnode)
 
 			node=gui.new_box_node(vmath.vector3(programdata.width-_scale*(20+128),programdata.height-_scale*85,0), vmath.vector3(_scale*100,_scale*15,0))
@@ -460,12 +468,13 @@ if not programdata.activeassociation then --viewing all associations
 			node=gui.new_text_node(vmath.vector3(0*_scale,-0*_scale,0), "clear")
 			gui.set_pivot(node, gui.PIVOT_NE)
 			gui.set_font(node, "sysstd")
+			gui.set_scale(node, vmath.vector3(_scale))
 			gui.set_parent(node,pnode)
 			--filterimage_filterresults
 		end
 	end
 	
-	node=gui.new_box_node(vmath.vector3(0*_scale,programdata.height-(45+128)*_scale,0), vmath.vector3(30,30,0))
+	node=gui.new_box_node(vmath.vector3(0*_scale,programdata.height-(45+128)*_scale,0), _scale*vmath.vector3(30,30,0))
 	gui.set_pivot(node, gui.PIVOT_NW)
 	gui.set_color(node,  vmath.vector3(.15))
 	nodes[#nodes+1]={node=node,priority=1,clicked=function()
@@ -474,7 +483,7 @@ if not programdata.activeassociation then --viewing all associations
 		return true
 	end}
 
-	node=gui.new_box_node(vmath.vector3(0*_scale,programdata.height-(45+128)*_scale,0), vmath.vector3(30,30,0))
+	node=gui.new_box_node(vmath.vector3(0*_scale,programdata.height-(45+128)*_scale,0), _scale*vmath.vector3(30,30,0))
 	gui.set_pivot(node, gui.PIVOT_NW)
 	gui.set_texture(node,"srcimg")
 	gui.play_flipbook(node, "add")

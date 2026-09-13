@@ -79,7 +79,7 @@ function update(self, dt)
 	if  programdata.screen ~="image" then programdata.fullimagemode=false donotdelete=false programdata.imgys=0 programdata.imgxs=0 programdata.imgz=1 programdata.tagscroll=0 goto skip end
 	if not programdata.selectedimage then goto skip end
 	if not imagedata[programdata.selectedimage].height or not imagedata[programdata.selectedimage].width then --idk why that happens. it does? when you scroll a lot with arrows. ooh, because it doesn't load extra while not in gallery.
-		print("WARNING: IMAGE "..programdata.selectedimage.."HAS NO WIDTH OR HEIGHT.")
+		--print("WARNING: IMAGE "..programdata.selectedimage.."HAS NO WIDTH OR HEIGHT.")
 		local f=io.open("images/"..programdata.selectedimage ,"rb") --reload the file data.
 		local td = f:read("*a")
 		local i =  image.load( td)  
@@ -98,11 +98,12 @@ function update(self, dt)
 		gui.set_position(imageobjects["image"], vmath.vector3(config.guiscale*150+config.galleryimagepadding*programdata.width ,programdata.height-config.galleryimagepadding*programdata.height-config.guiscale*15,0))
 	end
 	
-	imageobjects["ttext"] = gui.new_text_node(pos, text)
-	imageobjects["atext"] = gui.new_text_node(pos, text)
+	--imageobjects["ttext"] = gui.new_text_node(pos, text)
+	--imageobjects["atext"] = gui.new_text_node(pos, text)
 	gui.set_pivot(imageobjects["image"], 8)
-	gui.set_pivot(imageobjects["ttext"], 8)
-	gui.set_pivot(imageobjects["atext"], 8)
+	--gui.set_pivot(imageobjects["ttext"], 8)
+	--gui.set_scale(imageobjects["ttext"], vmath.vector3(config.guiscale))
+	--gui.set_pivot(imageobjects["atext"], 8)
 	local yoffset=0 - config.guiscale*100
 	local minval = yoffset
 	local tabletoparse={}
@@ -149,6 +150,7 @@ function update(self, dt)
 		gui.set_size(imageobjects["t\r"..i2], vmath.vector3( config.guiscale*150/config.guiscale ,0,0 ) )
 		gui.set_line_break(imageobjects["t\r"..i2], true)
 		gui.set_font(imageobjects["t\r"..i2], "sysstd")
+		gui.set_scale(imageobjects["t\r"..i2], vmath.vector3(config.guiscale))
 
 		local tc=gettagcolor(v)
 		--if mode ==1 then tc=gettagcolor(v:sub(3)) end
@@ -209,20 +211,23 @@ function update(self, dt)
 	gui.set_size(imageobjects["t\rentry"], vmath.vector3(   150  , config.guiscale*75,0))
 	gui.set_color(imageobjects["t\rentry"], vmath.vector3(tc.t[1] , tc.t[2] , tc.t[3] ))
 	gui.move_above(imageobjects["t\rentry"], nil)--imageobjects["entrybox"])
+	gui.set_scale(imageobjects["t\rentry"], vmath.vector3(config.guiscale))
 	end
 	
 	imageobjects["t\bsimilarbytags"]=gui.new_box_node( vmath.vector3(config.guiscale*290,config.guiscale*20,0), config.guiscale*vmath.vector3(200,30 ,0))
 	gui.set_color(imageobjects["t\bsimilarbytags"], vmath.vector3(.2))
 	imageobjects["b\bsimilarbytags"]=gui.new_text_node( vmath.vector3(config.guiscale*290,config.guiscale*20,0), "find similar by tags")
-
+	gui.set_scale(imageobjects["b\bsimilarbytags"], vmath.vector3(config.guiscale))
+	
 	imageobjects["t\bcopyimage"]=gui.new_box_node( vmath.vector3(config.guiscale*500,config.guiscale*20,0), config.guiscale*vmath.vector3(200,30 ,0))
 	gui.set_color(imageobjects["t\bcopyimage"], vmath.vector3(.2))
 	imageobjects["b\bcopyimage"]=gui.new_text_node( vmath.vector3(config.guiscale*500,config.guiscale*20,0), "copy image")
-
+	gui.set_scale(imageobjects["b\bcopyimage"], vmath.vector3(config.guiscale))
+	
 	imageobjects["t\bassociateimage"]=gui.new_box_node( vmath.vector3(config.guiscale*710,config.guiscale*20,0), config.guiscale*vmath.vector3(200,30 ,0))
 	gui.set_color(imageobjects["t\bassociateimage"], vmath.vector3(.2))
 	imageobjects["b\bassociateimage"]=gui.new_text_node( vmath.vector3(config.guiscale*710,config.guiscale*20,0), "associations")
-	
+	gui.set_scale(imageobjects["b\bassociateimage"], vmath.vector3(config.guiscale))
 	
 	end
 	

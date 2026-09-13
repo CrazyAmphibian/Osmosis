@@ -155,7 +155,7 @@ function update(self, dt)
 			
 
 			node = gui.new_text_node(vmath.vector3(xoff1,programdata.height+yoff1,0), v.change..": "..v.tag )
-			
+			gui.set_scale(node, vmath.vector3(config.guiscale))
 			if editmode=="tag" and editpath[1]==implindex and editpath[2]=="true" and editpath[3]==i then
 				gui.set_text(node, v.change..": "..tostring(tempstring))
 				tc=gettagcolor(tempstring)
@@ -225,7 +225,7 @@ function update(self, dt)
 
 
 				node = gui.new_text_node(vmath.vector3(xoff1,programdata.height+yoff1,0), v.change..": "..v.tag )
-
+				gui.set_scale(node, vmath.vector3(config.guiscale))
 				if editmode=="tag" and editpath[1]==implindex and editpath[2]=="false" and editpath[3]==i then
 					gui.set_text(node, v.change..": "..tostring(tempstring))
 					tc=gettagcolor(tempstring)
@@ -309,6 +309,7 @@ function update(self, dt)
 
 				node = gui.new_text_node(vmath.vector3(programdata.width/2+xoff2,programdata.height+yoff2,0), condtable.type )
 				gui.set_pivot(node, gui.PIVOT_NW)
+				gui.set_scale(node, vmath.vector3(config.guiscale))
 				gui.set_font(node, fonttouse)
 				table.insert(guicomponents, {node=node})
 				n=n+1
@@ -377,6 +378,7 @@ function update(self, dt)
 					
 					node = gui.new_text_node(vmath.vector3(programdata.width/2+xoff2,programdata.height+yoff2,0), v)
 					gui.set_pivot(node, gui.PIVOT_NW)
+					gui.set_scale(node, vmath.vector3(config.guiscale))
 					gui.set_font(node, fonttouse)
 					gui.set_color(node, vmath.vector3(tc.t[1],tc.t[2],tc.t[3]))
 					table.insert(guicomponents, {node=node })
@@ -501,6 +503,7 @@ function update(self, dt)
 		table.insert(guicomponents, {node=node , action="activatetextcond" , traceback=config.implications[implindex] , m1=function()  tempstring=config.implications[implindex].name or "" editmode="implname"  editx=traceback  editfunc=function() config.implications[implindex].name=tempstring or ""  end end   })
 
 		node=gui.new_text_node(vmath.vector3(xoff+130*gscale,programdata.height+yoff,0), config.implications[implindex].name or "" )
+		gui.set_scale(node, vmath.vector3(config.guiscale))
 		gui.set_pivot(node, gui.PIVOT_NW)
 		gui.set_font(node, "sysoneandhalf")
 		if editmode=="implname" and editpath==config.implications[implindex] then

@@ -65,6 +65,7 @@ function addconfigsection_incrementdecrement(ypos,label,description,table,index,
 	node = gui.new_text_node(vmath.vector3( 80*uiscale, ypos,0  ),  table[index] )
 	gui.set_pivot(node , gui.PIVOT_N)
 	gui.set_font(node, "sysoneandhalf")
+	gui.set_scale(node, vmath.vector3(config.guiscale))
 	guinodes[#guinodes+1]={node=node}
 	
 	node = gui.new_box_node(vmath.vector3( 110*uiscale, ypos,0  ), vmath.vector3( uiscale*30   ))
@@ -82,11 +83,13 @@ function addconfigsection_incrementdecrement(ypos,label,description,table,index,
 	node = gui.new_text_node(vmath.vector3( 145*uiscale, ypos,0  ),  label or "" )
 	gui.set_pivot(node , gui.PIVOT_NW)
 	gui.set_font(node, "sysoneandhalf")
+	gui.set_scale(node, vmath.vector3(config.guiscale))
 	guinodes[#guinodes+1]={node=node}
 
 	node = gui.new_text_node(vmath.vector3( 20*uiscale, ypos-30*uiscale,0  ),  description or "" )
 	gui.set_pivot(node , gui.PIVOT_NW)
 	gui.set_font(node, "sysstd")
+	gui.set_scale(node, vmath.vector3(config.guiscale))
 	guinodes[#guinodes+1]={node=node}
 
 	::exit::
@@ -121,11 +124,13 @@ function addconfigsection_booleantoggle(ypos,label,description,table,index)
 	node = gui.new_text_node(vmath.vector3( 55*uiscale, ypos,0  ),  label or "" )
 	gui.set_pivot(node , gui.PIVOT_NW)
 	gui.set_font(node, "sysoneandhalf")
+	gui.set_scale(node, vmath.vector3(config.guiscale))
 	guinodes[#guinodes+1]={node=node}
 
 	node = gui.new_text_node(vmath.vector3( 20*uiscale, ypos-30*uiscale,0  ),  description or "" )
 	gui.set_pivot(node , gui.PIVOT_NW)
 	gui.set_font(node, "sysstd")
+	gui.set_scale(node, vmath.vector3(config.guiscale))
 	guinodes[#guinodes+1]={node=node}
 
 	::exit::
@@ -164,6 +169,7 @@ function addconfigsection_multdiv(ypos,label,description,table,index,incamt,min,
 	node = gui.new_text_node(vmath.vector3( 80*uiscale, ypos,0  ),  table[index] )
 	gui.set_pivot(node , gui.PIVOT_N)
 	gui.set_font(node, "sysoneandhalf")
+	gui.set_scale(node, vmath.vector3(config.guiscale))
 	guinodes[#guinodes+1]={node=node}
 
 	node = gui.new_box_node(vmath.vector3( 110*uiscale, ypos,0  ), vmath.vector3( uiscale*30   ))
@@ -181,11 +187,13 @@ function addconfigsection_multdiv(ypos,label,description,table,index,incamt,min,
 	node = gui.new_text_node(vmath.vector3( 145*uiscale, ypos,0  ),  label or "" )
 	gui.set_pivot(node , gui.PIVOT_NW)
 	gui.set_font(node, "sysoneandhalf")
+	gui.set_scale(node, vmath.vector3(config.guiscale))
 	guinodes[#guinodes+1]={node=node}
 
 	node = gui.new_text_node(vmath.vector3( 20*uiscale, ypos-30*uiscale,0  ),  description or "" )
 	gui.set_pivot(node , gui.PIVOT_NW)
 	gui.set_font(node, "sysstd")
+	gui.set_scale(node, vmath.vector3(config.guiscale))
 	guinodes[#guinodes+1]={node=node}
 
 	::exit::
@@ -236,6 +244,7 @@ function addconfigsection_slider(ypos,label,description,table,index,min,max)
 	node = gui.new_text_node(vmath.vector3( 80*uiscale, ypos,0  ),  string.format("%.2f",table[index])  )
 	gui.set_pivot(node , gui.PIVOT_N)
 	gui.set_font(node, "sysoneandhalf")
+	gui.set_scale(node, vmath.vector3(config.guiscale))
 	guinodes[#guinodes+1]={node=node}
 
 
@@ -243,11 +252,13 @@ function addconfigsection_slider(ypos,label,description,table,index,min,max)
 	node = gui.new_text_node(vmath.vector3( 145*uiscale, ypos,0  ),  label or "" )
 	gui.set_pivot(node , gui.PIVOT_NW)
 	gui.set_font(node, "sysoneandhalf")
+	gui.set_scale(node, vmath.vector3(config.guiscale))
 	guinodes[#guinodes+1]={node=node}
 
 	node = gui.new_text_node(vmath.vector3( 20*uiscale, ypos-60*uiscale,0  ),  description or "" )
 	gui.set_pivot(node , gui.PIVOT_NW)
 	gui.set_font(node, "sysstd")
+	gui.set_scale(node, vmath.vector3(config.guiscale))
 	guinodes[#guinodes+1]={node=node}
 
 	::exit::
@@ -310,7 +321,7 @@ function addconfigsection_customtagcolor(ypos,tagindex)
 	gui.set_color(node, vmath.vector3(.33))
 	guinodes[#guinodes+1]={node=node}
 
-	ypos=ypos-10
+	ypos=ypos-10*config.guiscale
 
 
 
@@ -377,6 +388,7 @@ function addconfigsection_customtagcolor(ypos,tagindex)
 	node = gui.new_text_node(vmath.vector3( 125*uiscale, ypos,0  ),  ctagd.mode )
 	gui.set_pivot(node , gui.PIVOT_NW)
 	gui.set_font(node, "sysoneandhalf")
+	gui.set_scale(node, vmath.vector3(config.guiscale))
 	guinodes[#guinodes+1]={node=node}
 
 	
@@ -401,12 +413,14 @@ function addconfigsection_customtagcolor(ypos,tagindex)
 	gui.set_pivot(node , gui.PIVOT_NW)
 	gui.set_color(node, vmath.vector3(ctagd.t[1],ctagd.t[2],ctagd.t[3]))
 	gui.set_font(node, "sysoneandhalf")
+	gui.set_scale(node, vmath.vector3(config.guiscale))
 	guinodes[#guinodes+1]={node=node}
 
 
 	node = gui.new_text_node(vmath.vector3( 20*uiscale, ypos-35*uiscale,0  ),  "backing" )
 	gui.set_pivot(node , gui.PIVOT_NW)
 	gui.set_font(node, "sysoneandhalf")
+	gui.set_scale(node, vmath.vector3(config.guiscale))
 	guinodes[#guinodes+1]={node=node}
 	addconfigsection_rigbyslider(ypos-35*uiscale,ctagd.b,1,120*uiscale,0,1,"rgb_r", vmath.vector3(1,ctagd.b[2],ctagd.b[3])   )
 	addconfigsection_rigbyslider(ypos-35*uiscale,ctagd.b,2,340*uiscale,0,1,"rgb_g", vmath.vector3(ctagd.b[1],1,ctagd.b[3]) )
@@ -415,6 +429,7 @@ function addconfigsection_customtagcolor(ypos,tagindex)
 	node = gui.new_text_node(vmath.vector3( 20*uiscale, ypos-60*uiscale,0  ),  "text" )
 	gui.set_pivot(node , gui.PIVOT_NW)
 	gui.set_font(node, "sysoneandhalf")
+	gui.set_scale(node, vmath.vector3(config.guiscale))
 	guinodes[#guinodes+1]={node=node}
 	addconfigsection_rigbyslider(ypos-60*uiscale,ctagd.t,1,120*uiscale,0,1,"rgb_r", vmath.vector3(1,ctagd.t[2],ctagd.t[3]) )
 	addconfigsection_rigbyslider(ypos-60*uiscale,ctagd.t,2,340*uiscale,0,1,"rgb_g", vmath.vector3(ctagd.t[1],1,ctagd.t[3]) )
@@ -422,7 +437,7 @@ function addconfigsection_customtagcolor(ypos,tagindex)
 
 
 	::exit::
-	return ypos-100
+	return ypos-100*config.guiscale
 end
 
 
@@ -516,6 +531,7 @@ function update(self, dt)
 	guinodes[#guinodes+1]={node=node}
 	
 	node = gui.new_text_node(vmath.vector3( 30*guiscale, yposition,0  ),  "default tag color" )
+	gui.set_scale(node, vmath.vector3(config.guiscale))
 	gui.set_pivot(node , gui.PIVOT_NW)
 	gui.set_color(node, vmath.vector3(config.defaulttagcolors.t[1],config.defaulttagcolors.t[2],config.defaulttagcolors.t[3]))
 	gui.set_font(node, "sysoneandhalf")
@@ -525,6 +541,7 @@ function update(self, dt)
 	node = gui.new_text_node(vmath.vector3( 20*guiscale, yposition-35*guiscale,0  ),  "backing" )
 	gui.set_pivot(node , gui.PIVOT_NW)
 	gui.set_font(node, "sysoneandhalf")
+	gui.set_scale(node, vmath.vector3(config.guiscale))
 	guinodes[#guinodes+1]={node=node}
 	addconfigsection_rigbyslider(yposition-35*guiscale,config.defaulttagcolors.b,1,120*guiscale,0,1,"rgb_r", vmath.vector3(1,config.defaulttagcolors.b[2],config.defaulttagcolors.b[3]))
 	addconfigsection_rigbyslider(yposition-35*guiscale,config.defaulttagcolors.b,2,340*guiscale,0,1,"rgb_g", vmath.vector3(config.defaulttagcolors.b[1],1,config.defaulttagcolors.b[3]))
@@ -533,21 +550,23 @@ function update(self, dt)
 	node = gui.new_text_node(vmath.vector3( 20*guiscale, yposition-60*guiscale,0  ),  "text" )
 	gui.set_pivot(node , gui.PIVOT_NW)
 	gui.set_font(node, "sysoneandhalf")
+	gui.set_scale(node, vmath.vector3(config.guiscale))
 	guinodes[#guinodes+1]={node=node}
 	addconfigsection_rigbyslider(yposition-60*guiscale,config.defaulttagcolors.t,1,120*guiscale,0,1,"rgb_r", vmath.vector3(1,config.defaulttagcolors.t[2],config.defaulttagcolors.t[3]))
 	addconfigsection_rigbyslider(yposition-60*guiscale,config.defaulttagcolors.t,2,340*guiscale,0,1,"rgb_g", vmath.vector3(config.defaulttagcolors.t[1],1,config.defaulttagcolors.t[3]))
 	addconfigsection_rigbyslider(yposition-60*guiscale,config.defaulttagcolors.t,3,560*guiscale,0,1,"rgb_b", vmath.vector3(config.defaulttagcolors.t[1],config.defaulttagcolors.t[2],1))
 
-	yposition=yposition-100
+	yposition=yposition-100*config.guiscale
 
 
 
 	node=gui.new_text_node(vmath.vector3(guiscale*100,yposition,0), "custom tag colors")
 	gui.set_pivot(node , gui.PIVOT_NW)
 	gui.set_font(node,"sysoneandhalf")
+	gui.set_scale(node, vmath.vector3(config.guiscale))
 	guinodes[#guinodes+1]={node=node,}
 
-	yposition=yposition-30
+	yposition=yposition-30*config.guiscale
 
 	for i=1,#config.tagcolors do
 		yposition=addconfigsection_customtagcolor(yposition,i)
