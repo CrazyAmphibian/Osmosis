@@ -521,6 +521,7 @@ function on_input(self, action_id, action)
 			local saved=tempstring
 			transfer(nil)
 			transfer("\raddtag")
+			lasttagsuggestion=nil
 			if programdata.control then tempstring=saved end
 		end
 	end
