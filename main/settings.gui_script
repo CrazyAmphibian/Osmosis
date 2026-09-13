@@ -470,7 +470,7 @@ function update(self, dt)
 	yoff=0 + programdata.settingscroll/(40*guiscale) --y offset, this time im gonna use it as a unit and not pixelcount.
 	if profiler then
 	elems["\tdebug"]={}
-	elems["\tdebug"].gui = gui.new_text_node(vmath.vector3( 10*guiscale, programdata.height-(yoff*40*guiscale),0  ), "RAM: ".. math.floor(100*RAM/1000000000)/100 .."GB".."\tCPU:" ..  math.floor(CPU*1000)/1000 .."%" )
+	elems["\tdebug"].gui = gui.new_text_node(vmath.vector3( 10*guiscale, programdata.height-(yoff*40*guiscale),0  ), "RAM: ".. math.floor(100*RAM/1000000000)/100 .."GB".."  CPU:" ..  math.floor(CPU*1000)/1000 .."%" )
 	gui.set_pivot(elems["\tdebug"].gui , 8)--"RAM: ".. math.floor(100*profiler.get_memory_usage()/1000000000)/100 .."GB".."\tCPU:" .. math.floor(profiler.get_cpu_usage()*1000)/1000 .."%" )
 	gui.set_scale(elems["\tdebug"].gui, vmath.vector3(guiscale,guiscale,0))
 	yoff=yoff+.5
@@ -491,7 +491,7 @@ function update(self, dt)
 		end
 		
 		elems["\tdebug2"]={}
-		elems["\tdebug2"].gui = gui.new_text_node(vmath.vector3( 10*guiscale, programdata.height-(yoff*40*guiscale),0  ), "count:"..c.."\tshowing:"..s.."\tparsed:"..p.."\ttags:"..t )
+		elems["\tdebug2"].gui = gui.new_text_node(vmath.vector3( 10*guiscale, programdata.height-(yoff*40*guiscale),0  ), "count:"..c.."  showing:"..s.."  parsed:"..p.."  tags:"..t )
 		gui.set_pivot(elems["\tdebug2"].gui , 8)--"RAM: ".. math.floor(100*profiler.get_memory_usage()/1000000000)/100 .."GB".."\tCPU:" .. math.floor(profiler.get_cpu_usage()*1000)/1000 .."%" )
 		gui.set_scale(elems["\tdebug2"].gui, vmath.vector3(guiscale,guiscale,0))
 	end
