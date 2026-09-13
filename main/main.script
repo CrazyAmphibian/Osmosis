@@ -749,10 +749,8 @@ function generatethumbnailtexture(imagename)
 		local ctf=io.open(".thumbnails/"..imagename,"rb")
 		if ctf then
 			local content=ctf:read("*all")
-			local f=load("return "..content)
-			if f then
-				setfenv(f,{})
-				tdata=f()
+			local succ,tdata=pcall(sys.deserialize,content)
+			if succ then
 				imgdat.thumbnailimagetype=tdata.type
 				imgdat.thumbnailw=tdata.width
 				imgdat.thumbnailh=tdata.height
@@ -790,20 +788,20 @@ function generatethumbnailtexture(imagename)
 			if rawd.type==image.TYPE_LUMINANCE_ALPHA then width=2 end
 
 			local reduce=(math.max(imgdat.width,imgdat.height)/(config.thumbnailsize))
-			
-			print(reduce)
 			local nw,nh=math.floor(imgdat.width/reduce), math.floor(imgdat.height/reduce)
-			print(nw,nh)
+
 
 			local ow=imgdat.width
 			local oh=imgdat.height
 			
-			--print(imgdat.width,imgdat.height,nw,nh,reduce,config.thumbnailsize)
+			local math_floor=math.floor --localing global functions for some extra speed
+			local string_sub=string.sub
+		
 			for h=0,nh-1 do
-				--h=h
+				h=ow*math_floor(h*oh/nh)
 				for w=0,nw-1 do
-					local bytepos=width*(ow*math.floor(h*oh/nh)+math.floor(w*ow/nw))
-					buffer[#buffer+1]=string.sub(rawd.buffer,bytepos+1,bytepos+width)
+					local bytepos=width*(h+math_floor(w*ow/nw))
+					buffer[#buffer+1]=string_sub(rawd.buffer,bytepos+1,bytepos+width)
 				end
 			end
 
@@ -816,7 +814,7 @@ function generatethumbnailtexture(imagename)
 			
 			local cf=io.open(".thumbnails/"..imagename,"wb")
 			if cf then
-				cf:write(table.tostring({type=rawd.type,buffer=nubuf,width=nw,height=nh}) )
+				cf:write(sys.serialize({type=rawd.type,buffer=nubuf,width=nw,height=nh}) )
 				cf:close()
 			end
 		end
