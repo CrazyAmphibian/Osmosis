@@ -155,10 +155,10 @@ function update(self, dt)
 		local tc=gettagcolor(v)
 		--if mode ==1 then tc=gettagcolor(v:sub(3)) end
 		gui.set_color(imageobjects["t\r"..i2], vmath.vector3(tc.t[1],tc.t[2],tc.t[3] ) )
-		gui.set_scale(imageobjects["t\r"..i2], vmath.vector3(config.guiscale,config.guiscale,0))
+		gui.set_scale(imageobjects["t\r"..i2], vmath.vector3(config.guiscale))
 		gui.set_color(imageobjects["b\r"..i2], vmath.vector3(tc.b[1],tc.b[2],tc.b[3]) )
 		
-		local dy = gui.get_text_metrics_from_node(imageobjects["t\r"..i2]).height*config.guiscale
+		local dy = gui.get_text_metrics_from_node(imageobjects["t\r"..i2]).height
 		gui.set_size(imageobjects["b\r"..i2],  vmath.vector3(config.guiscale*150 , dy , 0) )
 		yoffset=yoffset-dy-config.guiscale*5
 
