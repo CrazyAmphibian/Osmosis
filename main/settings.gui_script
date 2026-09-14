@@ -228,7 +228,7 @@ function addconfigsection_slider(ypos,label,description,table,index,min,max)
 	guinodes[#guinodes+1]={node=node,input=function(nd,action_id,action)
 		if action_id==hash"m1" and action.value==1 and gui.pick_node(nd.node, action.x, action.y) then
 
-			local p= (action.x-35*uiscale)/(uiscale*290)
+			local p= (action.screen_x-35*uiscale)/(uiscale*290) --ditto
 			
 			table[index]= p*(max-min) + min 
 
