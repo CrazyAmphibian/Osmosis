@@ -291,7 +291,7 @@ function addconfigsection_rigbyslider(ypos,table,index,xpos,min,max,texture,colo
 	if not texture then gui.set_color(node,vmath.vector3(.25)) else gui.set_color(node,colormask or vmath.vector3(1,1,1))  end
 	guinodes[#guinodes+1]={node=node,input=function(nd,action_id,action)
 		if action_id==hash"m1" and action.value==1 and gui.pick_node(nd.node, action.x, action.y) then
-			local p=(action.x-xpos-5*uiscale)/(190*uiscale)
+			local p=(action.screen_x-xpos-5*uiscale)/(190*uiscale) --makes no sense that we are using screen_x here. whatever, it works.
 			table[index]=p
 		end
 	end}
