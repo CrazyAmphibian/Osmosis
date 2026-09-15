@@ -799,10 +799,10 @@ function on_input(self, action_id, action)
 		programdata.specassscroll=math.min(programdata.specassscroll,0)
 	else
 		if action_id==hash"mwu" then
-			programdata.associationscroll=programdata.associationscroll+10*config.scrollsen/config.guiscale
+			programdata.associationscroll=programdata.associationscroll-10*config.scrollsen
 		end
 		if action_id==hash"mwd" then
-			programdata.associationscroll=programdata.associationscroll-10*config.scrollsen/config.guiscale
+			programdata.associationscroll=programdata.associationscroll+10*config.scrollsen
 		end
 		programdata.associationscroll=math.max(programdata.associationscroll,0)
 	end
