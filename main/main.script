@@ -156,16 +156,53 @@ getfiles = function(dir) --returns table of all files in directory
 	local out={}
 	
 	if OS =="Linux" then
-		str= io.popen("ls \""..dir.."\" -w 1")
+		str= io.popen("ls -p \""..dir.."\" | grep -v /")
 	elseif OS=="Windows" then
-		str = io.popen("dir /b \""..dir.."\"")
+		str = io.popen("dir /A-D /b \""..dir.."\"")
 	end
-	
 	for i in str:lines() do
 		table.insert(out, i)
 	end
 	
 return out
+end
+
+
+getdirectories = function(dir) --returns table of all directories in directory
+	local str
+	local out={}
+
+	if OS =="Linux" then
+		str= io.popen("ls -F -1 \""..dir.."\" | grep -e \"/\" | rev | cut -b 2- | rev")
+	elseif OS=="Windows" then
+		str = io.popen("dir /AD /b \""..dir.."\"")
+	end
+	for i in str:lines() do
+		table.insert(out, i)
+	end
+
+	return out
+end
+
+getfiles_recursive = function(dir) --same as above, but looks in subdirectories
+	local out={}
+	local out2={} --subdirs
+	local f=getfiles(dir)
+	for i=1,#f do
+		out[#out+1]=f[i]
+	end
+	f=getdirectories(dir)
+	for i=1,#f do
+		out2[#out2+1]=dir.."/"..f[i]
+		local sf,sf2=getfiles_recursive(dir.."/"..f[i])
+		for n=1,#sf do
+			out[#out+1]=f[i].."/"..sf[n]
+		end
+		for n=1,#sf2 do
+			out2[#out2+1]=sf2[n]
+		end
+	end
+	return out,out2
 end
 
 
@@ -408,7 +445,8 @@ makedir(".thumbnails")
 
 
 function writetag(filename , data)
-	local f=io.open("tags/"..filename , "w+")
+	local f=io.open("tags/"..filename , "wb")
+	if not f then print("failed to open tag file for "..filename) return end
 	f:write( "return ".. table.tostring(data) )
 	f:close()
 	programdata.taglist={}
@@ -517,7 +555,7 @@ function ordertagsuggestions(textinput,taglist,excludelist)
 	for img,tt in pairs(tags) do --go through each tag list with the images
 		for i=1,#tt do --and each tag within the images
 			local tag=tt[i]
-			--s2[tag]=(s2[tag] or 0)
+			s2[tag]=(s2[tag] or 0)
 
 			for i=1,#taglist do
 				if taglist[i]==tag then --if we find our tag in the lists
@@ -873,7 +911,7 @@ function fetchsizeofimage(imagename)
 	local imgdat=imagedata[imagename]
 	if imgdat.width then return imgdat.width,imgdat.height end
 	local d=hotloadimage(imagename)
-	if not d then print("DISCARDING "..imagename.." FROM POOL: UNABLE TO LOAD") imagedata[imagename]=nil tags[imagename]=nil  images[imagename]=nil showing[imagename]=nil creategalleryimageorder() return end
+	if not d then print("DISCARDING "..imagename.." FROM POOL: UNABLE TO LOAD") imagedata[imagename]=nil tags[imagename]=nil  --[[images[imagename]=nil]] showing[imagename]=nil creategalleryimageorder() return end
 	imgdat.width=d.width
 	imgdat.height=d.height
 	if d.width then return d.width,d.height end
@@ -935,7 +973,15 @@ function reload() --refreshes all images, tags, ect
 	print("loading confing and associations took ".._INTTM-_INTTM2.." seconds")
 	_INTTM2=_INTTM
 	
-	local imagestor= getfiles("images")
+	local imagestor,subdirs= getfiles_recursive("images")
+	for i=1,#subdirs do
+		subdirs[i]=subdirs[i]:gsub("^images/","tags/",1)
+		if OS:lower()=="windows" then
+			os.execute("mkdir ".. subdirs[i]:gsub("/","\\") )
+		else
+			os.execute("mkdir "..subdirs[i])
+		end
+	end
 	for _,v in pairs(imagestor) do
 		if not ( v:sub(#v-3 ,#v  ):lower()==".png" or v:sub(#v-3 ,#v  ):lower()==".jpg" or v:sub(#v-4 ,#v  ):lower()==".jpeg"  ) then goto next end
 		--images[v]={} 
@@ -963,7 +1009,7 @@ function reload() --refreshes all images, tags, ect
 
 	
 	
-	local tagstor=getfiles("tags")
+	local tagstor=getfiles_recursive("tags")
 	for n=1,#tagstor do --if only lua had multithreadding...
 		local v=tagstor[n]
 		if imagedata[v] then

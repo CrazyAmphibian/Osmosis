@@ -144,7 +144,7 @@ function update(self, dt)
 		
 		imageobjects["b\r"..i2]=gui.new_box_node(vmath.vector3(0,programdata.height+yoffset+programdata.tagscroll,0), vmath.vector3(1,1,0) )
 		gui.set_pivot(imageobjects["b\r"..i2], 8)
-		if mode ==1 then a=programdata.tagcount[v].." " --[[i.." "]] else a="" end
+		if mode ==1 then a=(programdata.tagcount[v] or 0).." " --[[i.." "]] else a="" end
 		imageobjects["t\r"..i2]=gui.new_text_node(vmath.vector3(0,programdata.height+yoffset+programdata.tagscroll,0),  a ..v:breakup() )
 		gui.set_pivot(imageobjects["t\r"..i2], 8)
 		gui.set_size(imageobjects["t\r"..i2], vmath.vector3( config.guiscale*150/config.guiscale ,0,0 ) )
