@@ -224,14 +224,14 @@ if not programdata.activeassociation then --viewing all associations
 			local tex=assoc_generate_thumbnail(img)
 			if not tex then break end
 			
-			local is= (assoc.minimized and minimizedthumbnailsize or thumbnailsize)/math.max(imagedata[img].height,imagedata[img].width)
+			local is= (assoc.minimized and minimizedthumbnailsize or thumbnailsize)/math.max(imagedata[img].thumbnailh,imagedata[img].thumbnailw)
 			node=gui.new_box_node(vmath.vector3(_scale*30+xoff,programdata.height-_scale*10+yoff,0), vmath.vector3(_scale*(assoc.minimized and minimizedthumbnailsize or thumbnailsize)))
 			gui.set_pivot(node, gui.PIVOT_NW)
 			gui.set_color(node,  vmath.vector3(.15))
 			nodes[#nodes+1]={node=node}
 			pnode=node
 			
-			node=gui.new_box_node(vmath.vector3((assoc.minimized and minimizedthumbnailsize or thumbnailsize)*0.5*_scale,-(assoc.minimized and minimizedthumbnailsize or thumbnailsize)*0.5*_scale,0), vmath.vector3(_scale*is*imagedata[img].width,_scale*is*imagedata[img].height,0))
+			node=gui.new_box_node(vmath.vector3((assoc.minimized and minimizedthumbnailsize or thumbnailsize)*0.5*_scale,-(assoc.minimized and minimizedthumbnailsize or thumbnailsize)*0.5*_scale,0), vmath.vector3(_scale*is*imagedata[img].thumbnailw,_scale*is*imagedata[img].thumbnailh,0))
 			gui.set_pivot(node, gui.PIVOT_CENTER)
 			gui.set_texture(node,  tex)
 			gui.set_parent(node,pnode)
