@@ -19,7 +19,8 @@ local function assoc_generate_thumbnail(imagename)
 	for i=1,#thumbnailbuffers do
 		if thumbnailbuffers[i].img==imagename then return thumbnailbuffers[i].tex end
 	end
-	
+
+	if not imagedata[imagename] then return end
 	local imgdat=imagedata[imagename]
 
 	local cachesuccess=false
