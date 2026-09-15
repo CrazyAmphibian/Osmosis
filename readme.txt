@@ -143,6 +143,22 @@ todo:
 
 
 changelog:
+	V35
+		image thumbnails now cahce in a folder
+			greatly improves load times and gallery speed
+		fixed multiple text nodes not being properly scaled by the UI
+		changed some text syntax
+		fixed tag suggestions not clearing when hitting enter to submit a tag
+		tag color search text can now be deleted
+		fixed option sliders not working with different window widths
+		associations menu has been changed
+			now scrolls as expected
+			each item can now be minimized to reduce its footprint
+			reduced size of many elements to use up less space
+			fixed gui error if an image is missing
+		fixed some runtime errors
+		now supports images in subdirectories
+		
 	V34
 		Implemented a large behind the scenes rework of code
 			result is a cleaner codespace
