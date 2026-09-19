@@ -646,7 +646,7 @@ else --modifying a single association
 		gui.set_parent(node,pnode)
 		
 		if t then
-			local is= 128/math.max(imagedata[ifn].height,imagedata[ifn].width)
+			local is= 128/math.max(imagedata[ifn].thumbnailh,imagedata[ifn].thumbnailw)
 			
 			node=gui.new_text_node(vmath.vector3(_scale*115,programdata.height-_scale*25+yoff,0), ifn:truncate(50))
 			gui.set_pivot(node, gui.PIVOT_SW)
@@ -664,7 +664,7 @@ else --modifying a single association
 			end}
 			pnode=node
 
-			node=gui.new_box_node(vmath.vector3(64*_scale,-64*_scale,0), vmath.vector3(_scale*is*imagedata[ifn].width,_scale*is*imagedata[ifn].height,0))
+			node=gui.new_box_node(vmath.vector3(64*_scale,-64*_scale,0), vmath.vector3(_scale*is*imagedata[ifn].thumbnailw,_scale*is*imagedata[ifn].thumbnailh,0))
 			gui.set_pivot(node, gui.PIVOT_CENTER)
 			gui.set_texture(node,  t)
 			gui.set_parent(node,pnode)
